@@ -12,17 +12,21 @@ alloc = ["lupine-core/alloc"]
 
 [dependencies]
 lupine-core = { workspace = true }
-# Phase 2 dependencies — pinned to RC versions matching the RustCrypto PQC
-# release train. Uncommented when Phase 2 implementation begins.
-# ml-dsa = { workspace = true }
-# slh-dsa = { workspace = true }
-# ed25519-dalek = { workspace = true }
-# signature = { workspace = true }
-rand_core = { workspace = true }
-rand = { workspace = true }
+
+# Phase 2 PQC signature crates (workspace-registered RC pinned versions).
+ml-dsa = { workspace = true }
+slh-dsa = { workspace = true }
+
+# The RC signature crates require the RC release train of RustCrypto support
+# crates.  These are listed directly here (not via workspace) so lupine-kem,
+# which depends on the stable rand_core 0.6 / rand 0.8 / signature 2.x series,
+# is completely unaffected.  Cargo compiles both version trees independently.
+signature = "=3.0.0-rc.10"
+rand_core = "=0.10.0"
+rand = "=0.10.0"
 zeroize = { workspace = true }
 
 [dev-dependencies]
 hex = { workspace = true }
 proptest = { workspace = true }
-rand = { workspace = true }
+rand = "=0.10.0"
