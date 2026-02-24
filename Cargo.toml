@@ -47,10 +47,11 @@ sha2 = { version = "0.10", default-features = false }
 # signature 2.x is stable; 3.x is RC. Phase 2 will evaluate upgrading.
 signature = "2"
 
-# Serialization (Phase 4 — versions need auditing at that time)
-# der = { version = "0.7", features = ["alloc"] }
-# pem-rfc7468 = { version = "0.7", features = ["alloc"] }
-# spki = { version = "0.7", features = ["alloc"] }
+# Serialization (Phase 4)
+# der 0.8 is the current stable release (2024). spki is still RC (0.8.0-rc.4)
+# so we use a manual SPKI encoder in lupine-serial instead of taking an RC dep.
+der = { version = "0.8", features = ["alloc", "derive", "oid"] }
+pem-rfc7468 = { version = "1.0", features = ["alloc"] }
 
 # Utilities
 rand_core = { version = "0.6", default-features = false }
