@@ -1,16 +1,18 @@
 //! Signature implementations for the Lupine PQC suite.
 //!
-//! Provides ML-DSA (FIPS 204) and SLH-DSA (FIPS 205) wrappers with a
-//! Lupine-idiomatic API: byte-oriented key serialization, Lupine
-//! `Error`/`Result` types, and consistent patterns matching `lupine-kem`.
+//! Provides ML-DSA (FIPS 204), SLH-DSA (FIPS 205), and hybrid Ed25519+ML-DSA
+//! wrappers with a Lupine-idiomatic API: byte-oriented key serialization,
+//! Lupine `Error`/`Result` types, and consistent patterns matching `lupine-kem`.
 //!
 //! # Crate structure
 //!
 //! - [`mldsa`] — ML-DSA (Dilithium) wrappers for parameter sets 44, 65, 87
 //! - [`slhdsa`] — SLH-DSA (SPHINCS+) wrappers for all 12 FIPS 205 parameter sets
+//! - [`hybrid`] — Hybrid Ed25519+ML-DSA with AND-verify (Phase 3)
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+pub mod hybrid;
 pub mod mldsa;
 pub mod slhdsa;
 
@@ -20,6 +22,14 @@ pub use mldsa::{
     MlDsa87Signature, MlDsa87SigningKey, MlDsa87VerifyingKey,
     MlDsaSignature, MlDsaSigningKey, MlDsaVerifyingKey,
     generate_keypair as ml_dsa_generate_keypair,
+};
+
+pub use hybrid::{
+    generate_keypair as hybrid_generate_keypair,
+    HybridSigningKey, HybridVerifyingKey, HybridSignature,
+    HybridSigningKey44, HybridVerifyingKey44, HybridSignature44,
+    HybridSigningKey65, HybridVerifyingKey65, HybridSignature65,
+    HybridSigningKey87, HybridVerifyingKey87, HybridSignature87,
 };
 
 pub use slhdsa::{

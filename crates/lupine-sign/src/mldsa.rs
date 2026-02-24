@@ -304,6 +304,22 @@ mod tests {
         rand::rng()
     }
 
+    /// Run `f` on a thread with a 32 MB stack.
+    ///
+    /// ML-DSA-87 operations allocate large intermediate arrays during signing
+    /// and verification. In unoptimized (debug) builds these live on the stack
+    /// and overflow the default 8 MB thread stack. Spawning with a larger stack
+    /// is the idiomatic workaround until the upstream crate moves to heap
+    /// allocation for those intermediates.
+    fn with_large_stack<F: FnOnce() + Send + 'static>(f: F) {
+        std::thread::Builder::new()
+            .stack_size(32 * 1024 * 1024)
+            .spawn(f)
+            .expect("thread spawn failed")
+            .join()
+            .expect("thread panicked");
+    }
+
     // ── Round-trip tests (keygen → sign → verify) ────────────────────────────
 
     fn roundtrip<P>()
@@ -322,7 +338,7 @@ mod tests {
     #[test]
     fn roundtrip_65() { roundtrip::<ml_dsa::MlDsa65>(); }
     #[test]
-    fn roundtrip_87() { roundtrip::<ml_dsa::MlDsa87>(); }
+    fn roundtrip_87() { with_large_stack(|| roundtrip::<ml_dsa::MlDsa87>()); }
 
     // ── Tamper detection ─────────────────────────────────────────────────────
 
@@ -355,7 +371,7 @@ mod tests {
     #[test]
     fn tamper_detection_65() { tamper_detection::<ml_dsa::MlDsa65>(); }
     #[test]
-    fn tamper_detection_87() { tamper_detection::<ml_dsa::MlDsa87>(); }
+    fn tamper_detection_87() { with_large_stack(|| tamper_detection::<ml_dsa::MlDsa87>()); }
 
     // ── Wrong-key detection ──────────────────────────────────────────────────
 
@@ -380,7 +396,7 @@ mod tests {
     #[test]
     fn wrong_key_detection_65() { wrong_key_detection::<ml_dsa::MlDsa65>(); }
     #[test]
-    fn wrong_key_detection_87() { wrong_key_detection::<ml_dsa::MlDsa87>(); }
+    fn wrong_key_detection_87() { with_large_stack(|| wrong_key_detection::<ml_dsa::MlDsa87>()); }
 
     // ── Signing key serialization round-trip ─────────────────────────────────
 
@@ -410,7 +426,7 @@ mod tests {
     #[test]
     fn sk_serialization_65() { sk_serialization::<ml_dsa::MlDsa65>(); }
     #[test]
-    fn sk_serialization_87() { sk_serialization::<ml_dsa::MlDsa87>(); }
+    fn sk_serialization_87() { with_large_stack(|| sk_serialization::<ml_dsa::MlDsa87>()); }
 
     // ── Verifying key serialization round-trip ───────────────────────────────
 
@@ -434,7 +450,7 @@ mod tests {
     #[test]
     fn vk_serialization_65() { vk_serialization::<ml_dsa::MlDsa65>(); }
     #[test]
-    fn vk_serialization_87() { vk_serialization::<ml_dsa::MlDsa87>(); }
+    fn vk_serialization_87() { with_large_stack(|| vk_serialization::<ml_dsa::MlDsa87>()); }
 
     // ── Signature bytes serialization round-trip ─────────────────────────────
 
@@ -462,7 +478,7 @@ mod tests {
     #[test]
     fn sig_serialization_65() { sig_serialization::<ml_dsa::MlDsa65>(); }
     #[test]
-    fn sig_serialization_87() { sig_serialization::<ml_dsa::MlDsa87>(); }
+    fn sig_serialization_87() { with_large_stack(|| sig_serialization::<ml_dsa::MlDsa87>()); }
 
     // ── Invalid byte rejection ───────────────────────────────────────────────
 
