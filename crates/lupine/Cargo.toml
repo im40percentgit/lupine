@@ -1,0 +1,17 @@
+[package]
+name = "lupine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Lupine — Post-Quantum Cryptographic Suite (FIPS 203/204/205)"
+
+[features]
+default = ["std"]
+std = ["lupine-core/std", "lupine-kem/std", "lupine-sign/std", "lupine-serial/std"]
+alloc = ["lupine-core/alloc", "lupine-kem/alloc", "lupine-sign/alloc", "lupine-serial/alloc"]
+
+[dependencies]
+lupine-core = { workspace = true }
+lupine-kem = { workspace = true }
+lupine-sign = { workspace = true }
+lupine-serial = { workspace = true }

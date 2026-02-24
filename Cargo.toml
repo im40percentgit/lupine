@@ -1,0 +1,59 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/lupine-core",
+    "crates/lupine-kem",
+    "crates/lupine-sign",
+    "crates/lupine-serial",
+    "crates/lupine",
+    "crates/lupine-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/j/lupine"
+rust-version = "1.75"
+
+[workspace.dependencies]
+# Internal crates
+lupine-core = { path = "crates/lupine-core" }
+lupine-kem = { path = "crates/lupine-kem" }
+lupine-sign = { path = "crates/lupine-sign" }
+lupine-serial = { path = "crates/lupine-serial" }
+
+# PQC primitives (RustCrypto)
+ml-kem = "0.2"
+ml-dsa = "0.1"
+slh-dsa = "0.2"
+
+# Classical crypto (for hybrid modes)
+x25519-dalek = { version = "2", features = ["static_secrets"] }
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+
+# KDF / hashing
+hkdf = "0.12"
+sha2 = { version = "0.10", default-features = false }
+
+# RustCrypto trait crates
+kem = "0.3"
+signature = "2"
+
+# Serialization
+der = { version = "0.7", features = ["alloc"] }
+pem-rfc7468 = { version = "0.7", features = ["alloc"] }
+spki = { version = "0.7", features = ["alloc"] }
+
+# Utilities
+rand_core = { version = "0.6", default-features = false }
+rand = "0.8"
+zeroize = { version = "1", features = ["derive"] }
+hybrid-array = "0.2"
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Testing
+proptest = "1"
+hex = "0.4"

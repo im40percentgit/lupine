@@ -1,0 +1,22 @@
+[package]
+name = "lupine-serial"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Serialization (DER, PEM, SPKI) for the Lupine PQC suite"
+
+[features]
+default = ["std"]
+std = ["lupine-core/std"]
+alloc = ["lupine-core/alloc"]
+
+[dependencies]
+lupine-core = { workspace = true }
+lupine-kem = { workspace = true }
+lupine-sign = { workspace = true }
+der = { workspace = true }
+pem-rfc7468 = { workspace = true }
+spki = { workspace = true }
+
+[dev-dependencies]
+hex = { workspace = true }

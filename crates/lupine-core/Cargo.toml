@@ -1,0 +1,15 @@
+[package]
+name = "lupine-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Core types, traits, and error handling for the Lupine PQC suite"
+
+[features]
+default = ["std"]
+std = []
+alloc = []
+
+[dependencies]
+zeroize = { workspace = true }
+rand_core = { workspace = true }

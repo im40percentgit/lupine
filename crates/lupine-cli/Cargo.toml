@@ -1,0 +1,20 @@
+[package]
+name = "lupine-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "CLI for the Lupine PQC suite"
+
+[[bin]]
+name = "lupine"
+path = "src/main.rs"
+
+[dependencies]
+lupine = { path = "../lupine" }
+lupine-core = { workspace = true }
+lupine-kem = { workspace = true }
+lupine-sign = { workspace = true }
+lupine-serial = { workspace = true }
+clap = { workspace = true }
+rand = { workspace = true }
+hex = { workspace = true }
