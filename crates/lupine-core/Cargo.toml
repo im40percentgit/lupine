@@ -7,7 +7,7 @@ description = "Core types, traits, and error handling for the Lupine PQC suite"
 
 [features]
 default = ["std"]
-std = []
+std = ["alloc"]
 alloc = []
 
 [dependencies]

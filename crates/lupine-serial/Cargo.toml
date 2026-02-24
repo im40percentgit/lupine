@@ -12,11 +12,13 @@ alloc = ["lupine-core/alloc"]
 
 [dependencies]
 lupine-core = { workspace = true }
-lupine-kem = { workspace = true }
-lupine-sign = { workspace = true }
-der = { workspace = true }
-pem-rfc7468 = { workspace = true }
-spki = { workspace = true }
+# Phase 4 dependencies — DER/SPKI versions need auditing against the RustCrypto
+# release train before being enabled. Uncommented when Phase 4 begins.
+# lupine-kem = { workspace = true }
+# lupine-sign = { workspace = true }
+# der = { workspace = true }
+# pem-rfc7468 = { workspace = true }
+# spki = { workspace = true }
 
 [dev-dependencies]
 hex = { workspace = true }

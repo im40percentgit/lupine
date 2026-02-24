@@ -13,10 +13,12 @@ alloc = ["lupine-core/alloc"]
 [dependencies]
 lupine-core = { workspace = true }
 ml-kem = { workspace = true }
-x25519-dalek = { workspace = true }
-hkdf = { workspace = true }
-sha2 = { workspace = true }
-kem = { workspace = true }
+# Phase 3 (hybrid X25519+ML-KEM) deps — uncommented when hybrid module is added:
+# x25519-dalek = { workspace = true }
+# hkdf = { workspace = true }
+# sha2 = { workspace = true }
+# No direct `kem` dep: we use ml_kem::kem::{Encapsulate, Decapsulate} which
+# are re-exported from ml-kem itself, avoiding the pre-release version mismatch.
 rand_core = { workspace = true }
 rand = { workspace = true }
 zeroize = { workspace = true }

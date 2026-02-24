@@ -24,12 +24,16 @@ lupine-sign = { path = "crates/lupine-sign" }
 lupine-serial = { path = "crates/lupine-serial" }
 
 # PQC primitives (RustCrypto)
+# ml-kem 0.2 internally depends on kem = "0.3.0-pre.0" (not a stable release).
+# lupine-kem uses ml_kem::kem re-exports rather than a direct kem dep.
 ml-kem = "0.2"
-ml-dsa = "0.1"
-slh-dsa = "0.2"
+# ml-dsa and slh-dsa are RC-only; pinned versions activated in Phase 2.
+# ml-dsa = "=0.1.0-rc.7"
+# slh-dsa = "=0.2.0-rc.4"
 
-# Classical crypto (for hybrid modes)
+# Classical crypto (for hybrid modes — Phase 3)
 x25519-dalek = { version = "2", features = ["static_secrets"] }
+# ed25519-dalek 2.x is stable; 3.x is pre-release. Keep at 2 for now.
 ed25519-dalek = { version = "2", features = ["rand_core"] }
 
 # KDF / hashing
@@ -37,13 +41,13 @@ hkdf = "0.12"
 sha2 = { version = "0.10", default-features = false }
 
 # RustCrypto trait crates
-kem = "0.3"
+# signature 2.x is stable; 3.x is RC. Phase 2 will evaluate upgrading.
 signature = "2"
 
-# Serialization
-der = { version = "0.7", features = ["alloc"] }
-pem-rfc7468 = { version = "0.7", features = ["alloc"] }
-spki = { version = "0.7", features = ["alloc"] }
+# Serialization (Phase 4 — versions need auditing at that time)
+# der = { version = "0.7", features = ["alloc"] }
+# pem-rfc7468 = { version = "0.7", features = ["alloc"] }
+# spki = { version = "0.7", features = ["alloc"] }
 
 # Utilities
 rand_core = { version = "0.6", default-features = false }

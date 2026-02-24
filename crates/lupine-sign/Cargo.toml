@@ -12,10 +12,12 @@ alloc = ["lupine-core/alloc"]
 
 [dependencies]
 lupine-core = { workspace = true }
-ml-dsa = { workspace = true }
-slh-dsa = { workspace = true }
-ed25519-dalek = { workspace = true }
-signature = { workspace = true }
+# Phase 2 dependencies — pinned to RC versions matching the RustCrypto PQC
+# release train. Uncommented when Phase 2 implementation begins.
+# ml-dsa = { workspace = true }
+# slh-dsa = { workspace = true }
+# ed25519-dalek = { workspace = true }
+# signature = { workspace = true }
 rand_core = { workspace = true }
 rand = { workspace = true }
 zeroize = { workspace = true }
