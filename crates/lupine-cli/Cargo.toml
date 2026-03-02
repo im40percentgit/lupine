@@ -13,9 +13,14 @@ path = "src/main.rs"
 lupine = { path = "../lupine" }
 lupine-core = { workspace = true }
 lupine-kem = { workspace = true }
-# Phase 5 deps (sign/serial/clap/hex) — uncommented when CLI is implemented:
-# lupine-sign = { workspace = true }
-# lupine-serial = { workspace = true }
-# clap = { workspace = true }
-# hex = { workspace = true }
+lupine-sign = { workspace = true }
+lupine-serial = { workspace = true }
+ml-kem = { workspace = true }
+ml-dsa = { workspace = true }
+slh-dsa = { workspace = true }
+clap = { workspace = true }
+hex = { workspace = true }
 rand = { workspace = true }
+rand_010 = { package = "rand", version = "=0.10.0" }
+rand_core_010 = { package = "rand_core", version = "=0.10.0" }
+anyhow = { workspace = true }

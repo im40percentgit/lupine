@@ -61,6 +61,7 @@ hybrid-array = "0.2"
 
 # CLI
 clap = { version = "4", features = ["derive"] }
+anyhow = "1"
 
 # Testing
 proptest = "1"
