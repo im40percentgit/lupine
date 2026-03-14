@@ -70,3 +70,6 @@ anyhow = "1"
 # Testing
 proptest = "1"
 hex = "0.4"
+
+# Benchmarking
+criterion = { version = "0.5", features = ["html_reports"] }
