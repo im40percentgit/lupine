@@ -28,3 +28,8 @@ hybrid-array = { workspace = true }
 hex = { workspace = true }
 proptest = { workspace = true }
 rand = { workspace = true }
+criterion = { workspace = true }
+
+[[bench]]
+name = "kem"
+harness = false
