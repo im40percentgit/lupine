@@ -20,3 +20,13 @@ pem-rfc7468 = { workspace = true }
 
 [dev-dependencies]
 hex = { workspace = true }
+# Real-key integration tests: generate actual ML-KEM keypairs, then
+# serialize through DER/PEM/SPKI pipelines and verify crypto ops still work.
+# lupine-kem is already a regular dependency; adding it here makes its full
+# public API available in integration tests.
+lupine-kem = { workspace = true }
+# ml-kem needed directly in integration tests for generic type parameters
+# (ml_kem::MlKem512/768/1024 used as generic args to test helpers).
+ml-kem = { workspace = true }
+# rand 0.8 (workspace default): compatible with lupine-kem's CryptoRngCore bound.
+rand = { workspace = true }

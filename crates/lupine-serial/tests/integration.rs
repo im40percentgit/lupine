@@ -1,23 +1,34 @@
 //! Integration tests for lupine-serial cross-format encoding chains.
 //!
-//! These tests exercise the full path: raw key bytes → DER → PEM → DER → key,
-//! and DER → SPKI → decode, verifying that all modules compose correctly.
+//! Tests are split into two sections:
+//!
+//! 1. **Synthetic-byte tests** — fast tests using fake key bytes. These verify
+//!    that the DER/PEM/SPKI encoding layers compose correctly as a format chain.
+//!
+//! 2. **Real-key tests** — slower tests using actual ML-KEM keypairs. These
+//!    verify that round-tripping a real key through DER/PEM/SPKI encoding and
+//!    decoding does not corrupt the key material needed for crypto operations.
 //!
 //! @decision DEC-SERIAL-006
-//! @title Integration test scope: synthetic bytes vs real cryptographic keys
+//! @title Integration test scope: synthetic bytes + real ML-KEM keys
 //! @status accepted
-//! @rationale Integration tests here use short synthetic byte slices rather
-//!   than real ML-KEM/ML-DSA keypairs. The serialisation layer is format-only:
-//!   it wraps arbitrary bytes in DER/PEM/SPKI frames. Generating real keypairs
-//!   would add multi-second test time (SLH-DSA key generation especially) with
-//!   no additional coverage of the serialisation code paths. Crypto correctness
-//!   is tested in lupine-kem and lupine-sign respectively. The integration tests
-//!   verify composition: that the DER, PEM, SPKI, and composite modules
-//!   interoperate correctly as a chain.
+//! @rationale The synthetic-byte tests validate the serialization format chain
+//!   quickly (no keygen cost). The real-key tests validate end-to-end: that
+//!   the extracted raw bytes from DER/SPKI decoding exactly match the original
+//!   key, so a subsequent `from_bytes` call reconstructs a working key.
+//!   lupine-sign real-key tests are not included here because lupine-sign uses
+//!   rand 0.10 RC which has a different CryptoRng trait than rand 0.8 (used by
+//!   lupine-kem and this crate's dev-dep). Cross-format testing of lupine-sign
+//!   keys is covered in lupine-sign/tests/roundtrip.rs.
 
 use lupine_core::{KemAlgorithm, SignAlgorithm};
 use lupine_serial::composite::{CompositeKemVariant, CompositeSignVariant};
 use lupine_serial::{composite, der, pem, spki};
+
+// Imports for real-key tests (Section 2)
+use lupine_kem::{generate_keypair as kem_generate_keypair, MlKemPublicKey, MlKemSecretKey};
+use rand::rngs::OsRng;
+use ml_kem::{EncodedSizeUser, KemCore, kem::{Encapsulate, Decapsulate}};
 
 // Synthetic key bytes — large enough to be realistic-ish but not actual keys.
 const FAKE_KEM_KEY: &[u8] = b"fake_kem_public_key_bytes_for_integration_tests_roundtrip";
@@ -267,4 +278,159 @@ fn all_composite_sign_variants_roundtrip() {
         assert_eq!(c, CLASSICAL_COMPONENT);
         assert_eq!(p, PQC_COMPONENT);
     }
+}
+
+// ---------------------------------------------------------------------------
+// Section 2: Real-key integration tests (ML-KEM)
+//
+// These tests generate actual ML-KEM keypairs, serialize through the
+// DER/PEM/SPKI pipeline, reconstruct keys from the recovered bytes, and
+// verify that cryptographic operations still work end-to-end.
+//
+// lupine-sign real-key tests are in lupine-sign/tests/roundtrip.rs because
+// lupine-sign uses rand 0.10 (RC), which has a different CryptoRng trait than
+// the rand 0.8 used by lupine-kem and this integration test.
+// ---------------------------------------------------------------------------
+
+/// Helper: generate an ML-KEM keypair and run a full serialize→deserialize→
+/// crypto cycle through DER/PEM/DER encoding.
+fn kem_real_key_der_pem_cycle<P>(alg: KemAlgorithm)
+where
+    P: KemCore,
+    P::DecapsulationKey: EncodedSizeUser,
+    P::EncapsulationKey: EncodedSizeUser
+        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::DecapsulationKey: Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
+{
+    // Generate a real keypair.
+    let (sk, pk) = kem_generate_keypair::<P>(&mut OsRng).expect("real keygen must succeed");
+
+    // --- Public key: DER → PEM → DER → raw bytes → from_bytes ---
+    let pk_raw = pk.to_bytes();
+    let pk_der = der::encode_kem_public_key_der(alg, pk_raw).expect("encode pk DER must succeed");
+    let pk_pem = pem::encode_public_key_pem(&pk_der).expect("encode pk PEM must succeed");
+    let pk_der2 = pem::decode_public_key_pem(&pk_pem).expect("decode pk PEM must succeed");
+    let (alg_out, pk_raw2) = der::decode_kem_public_key_der(&pk_der2).expect("decode pk DER must succeed");
+
+    assert_eq!(alg_out, alg, "algorithm must survive DER/PEM round-trip");
+    assert_eq!(pk_raw, pk_raw2.as_slice(), "pk raw bytes must survive DER/PEM round-trip");
+
+    // Reconstruct the public key from the round-tripped bytes.
+    let pk2 = MlKemPublicKey::<P>::from_bytes(&pk_raw2).expect("pk from_bytes must succeed");
+    assert_eq!(pk.to_bytes(), pk2.to_bytes(), "pk must be identical after DER/PEM round-trip");
+
+    // --- Secret key: DER → PEM → DER → raw bytes → from_bytes ---
+    let sk_raw = sk.to_bytes();
+    let sk_der = der::encode_kem_secret_key_der(alg, sk_raw).expect("encode sk DER must succeed");
+    let sk_pem = pem::encode_private_key_pem(&sk_der).expect("encode sk PEM must succeed");
+    let sk_der2 = pem::decode_private_key_pem(&sk_pem).expect("decode sk PEM must succeed");
+    let (alg_sk_out, sk_raw2) = der::decode_kem_secret_key_der(&sk_der2).expect("decode sk DER must succeed");
+
+    assert_eq!(alg_sk_out, alg, "algorithm must survive DER/PEM round-trip");
+    assert_eq!(sk_raw, sk_raw2.as_slice(), "sk raw bytes must survive DER/PEM round-trip");
+
+    let sk2 = MlKemSecretKey::<P>::from_bytes(&sk_raw2).expect("sk from_bytes must succeed");
+    assert_eq!(sk.to_bytes(), sk2.to_bytes(), "sk must be identical after DER/PEM round-trip");
+
+    // --- Crypto: use the round-tripped keys for a full encap+decap cycle ---
+    let (ct, ss_send) = pk2.encapsulate(&mut OsRng).expect("encap with DER/PEM-recovered pk must succeed");
+    let ss_recv = sk2.decapsulate(&ct).expect("decap with DER/PEM-recovered sk must succeed");
+    assert_eq!(
+        ss_send.as_bytes(),
+        ss_recv.as_bytes(),
+        "shared secrets must match after DER/PEM key round-trip"
+    );
+}
+
+#[test]
+fn real_key_mlkem512_der_pem_crypto_cycle() {
+    kem_real_key_der_pem_cycle::<ml_kem::MlKem512>(KemAlgorithm::MlKem512);
+}
+
+#[test]
+fn real_key_mlkem768_der_pem_crypto_cycle() {
+    kem_real_key_der_pem_cycle::<ml_kem::MlKem768>(KemAlgorithm::MlKem768);
+}
+
+#[test]
+fn real_key_mlkem1024_der_pem_crypto_cycle() {
+    kem_real_key_der_pem_cycle::<ml_kem::MlKem1024>(KemAlgorithm::MlKem1024);
+}
+
+/// Real-key SPKI round-trip: public key → SPKI DER → PEM → SPKI DER → raw →
+/// reconstruct → crypto works.
+fn kem_real_key_spki_cycle<P>(alg: KemAlgorithm)
+where
+    P: KemCore,
+    P::DecapsulationKey: EncodedSizeUser,
+    P::EncapsulationKey: EncodedSizeUser
+        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::DecapsulationKey: Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
+{
+    let (sk, pk) = kem_generate_keypair::<P>(&mut OsRng).expect("real keygen must succeed");
+
+    let pk_raw = pk.to_bytes();
+    let spki_der = spki::encode_kem_spki(alg, pk_raw).expect("encode SPKI must succeed");
+    let spki_pem = pem::encode_public_key_pem(&spki_der).expect("encode SPKI PEM must succeed");
+    let spki_der2 = pem::decode_public_key_pem(&spki_pem).expect("decode SPKI PEM must succeed");
+    let (alg_out, pk_raw2) = spki::decode_kem_spki(&spki_der2).expect("decode SPKI must succeed");
+
+    assert_eq!(alg_out, alg, "algorithm must survive SPKI/PEM round-trip");
+    assert_eq!(pk_raw, pk_raw2.as_slice(), "pk bytes must survive SPKI/PEM round-trip");
+
+    let pk2 = MlKemPublicKey::<P>::from_bytes(&pk_raw2).expect("pk from_bytes must succeed");
+    let (ct, ss_send) = pk2.encapsulate(&mut OsRng).expect("encap with SPKI-recovered pk must succeed");
+    let ss_recv = sk.decapsulate(&ct).expect("decap must succeed");
+    assert_eq!(
+        ss_send.as_bytes(),
+        ss_recv.as_bytes(),
+        "shared secrets must match after SPKI/PEM key round-trip"
+    );
+}
+
+#[test]
+fn real_key_mlkem512_spki_cycle() {
+    kem_real_key_spki_cycle::<ml_kem::MlKem512>(KemAlgorithm::MlKem512);
+}
+
+#[test]
+fn real_key_mlkem768_spki_cycle() {
+    kem_real_key_spki_cycle::<ml_kem::MlKem768>(KemAlgorithm::MlKem768);
+}
+
+#[test]
+fn real_key_mlkem1024_spki_cycle() {
+    kem_real_key_spki_cycle::<ml_kem::MlKem1024>(KemAlgorithm::MlKem1024);
+}
+
+/// Real-key full pipeline: DER → SPKI → PEM all use the same underlying raw
+/// bytes for the same keypair, so they must all decode to identical byte slices.
+#[test]
+fn real_key_mlkem768_der_and_spki_recover_same_raw_bytes() {
+    let (_sk, pk) = kem_generate_keypair::<ml_kem::MlKem768>(&mut OsRng).unwrap();
+    let pk_raw = pk.to_bytes();
+
+    // DER encoding
+    let der_bytes = der::encode_kem_public_key_der(KemAlgorithm::MlKem768, pk_raw).unwrap();
+    let (_, from_der) = der::decode_kem_public_key_der(&der_bytes).unwrap();
+
+    // SPKI encoding
+    let spki_bytes = spki::encode_kem_spki(KemAlgorithm::MlKem768, pk_raw).unwrap();
+    let (_, from_spki) = spki::decode_kem_spki(&spki_bytes).unwrap();
+
+    // Both must recover the identical raw bytes.
+    assert_eq!(
+        from_der.as_slice(), pk_raw,
+        "DER-decoded raw bytes must match original pk"
+    );
+    assert_eq!(
+        from_spki.as_slice(), pk_raw,
+        "SPKI-decoded raw bytes must match original pk"
+    );
+    assert_eq!(
+        from_der, from_spki,
+        "DER and SPKI must decode to identical raw key bytes"
+    );
 }

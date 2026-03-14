@@ -1,0 +1,39 @@
+[package]
+name = "lupine-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+# cargo-fuzz creates a standalone workspace so it doesn't pull in the main
+# workspace's test/dev configurations. This matches the standard cargo-fuzz
+# layout where fuzz/Cargo.toml is its own workspace root.
+[workspace]
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+lupine-serial = { path = "../crates/lupine-serial" }
+lupine-core = { path = "../crates/lupine-core" }
+
+# Suppress cargo warnings about unused profiles
+[profile.release]
+panic = "abort"
+[profile.dev]
+panic = "abort"
+
+[[bin]]
+name = "der_decode"
+path = "fuzz_targets/der_decode.rs"
+doc = false
+
+[[bin]]
+name = "pem_parse"
+path = "fuzz_targets/pem_parse.rs"
+doc = false
+
+[[bin]]
+name = "spki_decode"
+path = "fuzz_targets/spki_decode.rs"
+doc = false

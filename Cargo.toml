@@ -8,6 +8,10 @@ members = [
     "crates/lupine",
     "crates/lupine-cli",
 ]
+# fuzz/ is managed by cargo-fuzz and has its own build system.
+# Excluding it here prevents `cargo build/test --workspace` from pulling in
+# libfuzzer-sys, which is only available when cargo-fuzz is installed.
+exclude = ["fuzz"]
 
 [workspace.package]
 version = "0.1.0"
