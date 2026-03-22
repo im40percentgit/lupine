@@ -35,6 +35,7 @@ use ml_kem::{
     kem::{Decapsulate, Encapsulate},
 };
 use rand_core::CryptoRngCore;
+use zeroize::Zeroize;
 
 use lupine_core::{Error, Result, SharedSecret};
 
@@ -170,6 +171,13 @@ where
 ///
 /// Use the type aliases [`MlKemSecretKey512`], [`MlKemSecretKey768`], or
 /// [`MlKemSecretKey1024`] for concrete parameter sets.
+///
+/// # Memory safety
+///
+/// `Drop` zeroizes `bytes` and `ek_bytes` (the Lupine wrapper's raw key
+/// material). The native `P::DecapsulationKey` carries its own
+/// `ZeroizeOnDrop` (via the `ml-kem/zeroize` feature), so all secret bytes
+/// are cleared when this value is dropped.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MlKemSecretKey<P: KemCore> {
     /// Raw encoded bytes of the decapsulation key.
@@ -180,6 +188,23 @@ pub struct MlKemSecretKey<P: KemCore> {
     ek_bytes: Vec<u8>,
     /// Parsed native key.
     native: P::DecapsulationKey,
+}
+
+/// @decision DEC-KEM-003
+/// @title Manual Drop for MlKemSecretKey instead of ZeroizeOnDrop derive
+/// @status accepted
+/// @rationale `#[derive(ZeroizeOnDrop)]` requires every field to implement
+///   `Zeroize`. The `P::DecapsulationKey` associated type does not expose
+///   `Zeroize` as a trait bound in the `KemCore` definition, so the derive
+///   cannot verify it at the wrapper level. A manual `Drop` impl zeroizes the
+///   two `Vec<u8>` fields owned by the wrapper; the native `DecapsulationKey`
+///   is handled by its own `ZeroizeOnDrop` (activated via `ml-kem/zeroize`).
+impl<P: KemCore> Drop for MlKemSecretKey<P> {
+    fn drop(&mut self) {
+        self.bytes.zeroize();
+        self.ek_bytes.zeroize();
+        // self.native: P::DecapsulationKey has ZeroizeOnDrop via ml-kem/zeroize feature.
+    }
 }
 
 impl<P> MlKemSecretKey<P>

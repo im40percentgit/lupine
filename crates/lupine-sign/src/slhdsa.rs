@@ -56,6 +56,7 @@ use alloc::vec::Vec;
 use slh_dsa::{ParameterSet, SigningKey, VerifyingKey};
 use slh_dsa::signature::{Keypair, Signer};
 use rand_core::CryptoRng;
+use zeroize::Zeroize;
 
 use lupine_core::{Error, Result};
 
@@ -183,12 +184,33 @@ pub fn generate_keypair<P: ParameterSet>(
 ///
 /// Use the concrete type aliases (e.g. [`SlhDsaSha2_128sSigningKey`]) rather
 /// than instantiating this type directly.
+///
+/// # Memory safety
+///
+/// `Drop` zeroizes the `bytes` field (the serialized key cache). The native
+/// `SigningKey<P>` handles its own zeroization via `ZeroizeOnDrop` (activated
+/// through the `slh-dsa/zeroize` feature).
 #[derive(Clone)]
 pub struct SlhDsaSigningKey<P: ParameterSet> {
     /// Serialized key bytes (cached to avoid re-serialization).
     bytes: Vec<u8>,
     /// Native signing key.
     native: SigningKey<P>,
+}
+
+/// @decision DEC-SIGN-006
+/// @title Manual Drop for SlhDsaSigningKey instead of ZeroizeOnDrop derive
+/// @status accepted
+/// @rationale Same rationale as DEC-SIGN-005: `#[derive(ZeroizeOnDrop)]`
+///   cannot verify that `SigningKey<P>` implements `Zeroize` because `Zeroize`
+///   is not a supertrait of `ParameterSet`. A manual `Drop` zeroizes the
+///   wrapper-owned `bytes` Vec; the native `SigningKey<P>` is handled by its
+///   own `ZeroizeOnDrop` via `slh-dsa/zeroize`.
+impl<P: ParameterSet> Drop for SlhDsaSigningKey<P> {
+    fn drop(&mut self) {
+        self.bytes.zeroize();
+        // self.native: SigningKey<P> has ZeroizeOnDrop via slh-dsa/zeroize feature.
+    }
 }
 
 impl<P: ParameterSet> SlhDsaSigningKey<P> {

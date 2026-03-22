@@ -48,6 +48,7 @@ use ml_kem::{
 };
 use rand_core::CryptoRngCore;
 use x25519_dalek::{PublicKey as X25519PublicKey, StaticSecret as X25519StaticSecret};
+use zeroize::Zeroize;
 
 use lupine_core::{Error, Result, SharedSecret};
 
@@ -206,6 +207,14 @@ where
 ///
 /// Use the type aliases [`HybridKemSecretKey512`], [`HybridKemSecretKey768`],
 /// or [`HybridKemSecretKey1024`] for concrete parameter sets.
+///
+/// # Memory safety
+///
+/// `Drop` zeroizes `mlkem_pk_bytes` (the cached public key byte cache, which
+/// is non-secret but cleared for defense in depth). `x25519_sk`
+/// (`StaticSecret`) already implements `Zeroize` and zeroizes itself on drop.
+/// `mlkem_sk` (`MlKemSecretKey`) has its own `Drop` impl that zeroizes its
+/// inner byte fields and delegates to the native key's `ZeroizeOnDrop`.
 pub struct HybridKemSecretKey<P: KemCore> {
     /// X25519 static secret key.
     x25519_sk: X25519StaticSecret,
@@ -215,6 +224,16 @@ pub struct HybridKemSecretKey<P: KemCore> {
     mlkem_sk: MlKemSecretKey<P>,
     /// Cached ML-KEM public key bytes (for KitchenSink input).
     mlkem_pk_bytes: Vec<u8>,
+}
+
+impl<P: KemCore> Drop for HybridKemSecretKey<P> {
+    fn drop(&mut self) {
+        // mlkem_pk_bytes is non-secret public key material, but we zeroize
+        // it defensively to eliminate all key-related bytes from this struct.
+        self.mlkem_pk_bytes.zeroize();
+        // x25519_sk: StaticSecret implements Zeroize/ZeroizeOnDrop natively.
+        // mlkem_sk: has its own Drop impl (see MlKemSecretKey).
+    }
 }
 
 impl<P> HybridKemSecretKey<P>
