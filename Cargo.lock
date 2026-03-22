@@ -643,6 +643,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e1b229d73f5803b562cc26e4da0396c8610a4ee209f4fac8fa4f8d709166dc45"
 dependencies = [
  "typenum",
+ "zeroize",
 ]
 
 [[package]]
@@ -863,6 +864,7 @@ dependencies = [
  "rand_core 0.10.0",
  "sha3 0.11.0-rc.7",
  "signature 3.0.0-rc.10",
+ "zeroize",
 ]
 
 [[package]]
@@ -875,6 +877,7 @@ dependencies = [
  "kem",
  "rand_core 0.6.4",
  "sha3 0.10.8",
+ "zeroize",
 ]
 
 [[package]]
@@ -885,6 +888,7 @@ checksum = "6dfecc750073acc09af2f8899b2342d520d570392ba1c3aed53eeb0d84ca4103"
 dependencies = [
  "hybrid-array 0.4.7",
  "num-traits",
+ "zeroize",
 ]
 
 [[package]]
@@ -1349,6 +1353,7 @@ dependencies = [
  "signature 3.0.0-rc.10",
  "typenum",
  "zerocopy",
+ "zeroize",
 ]
 
 [[package]]

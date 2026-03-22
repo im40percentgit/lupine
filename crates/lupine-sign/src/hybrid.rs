@@ -123,6 +123,14 @@ pub fn generate_keypair<P: KeyGen + MlDsaParams>(
 ///
 /// Use the type aliases [`HybridSigningKey44`], [`HybridSigningKey65`], or
 /// [`HybridSigningKey87`] for concrete parameter sets.
+///
+/// # Memory safety
+///
+/// Both component fields zeroize their secret material automatically on drop:
+/// `Ed25519SigningKey` implements `ZeroizeOnDrop` (ed25519-dalek), and
+/// `MlDsaSigningKey<P>` has its own `Drop` impl that zeroizes the seed and
+/// delegates to the native key's `ZeroizeOnDrop`. No additional `Drop` impl
+/// is required at this wrapper level.
 pub struct HybridSigningKey<P: MlDsaParams> {
     /// Ed25519 signing key (32-byte seed representation).
     ed_sk: Ed25519SigningKey,

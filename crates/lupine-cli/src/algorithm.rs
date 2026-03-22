@@ -117,6 +117,8 @@ impl CliAlgorithm {
     }
 
     /// Returns true if this is an SLH-DSA algorithm.
+    // Used in tests; allow dead_code for production codepath lint.
+    #[allow(dead_code)]
     pub fn is_slhdsa(self) -> bool {
         !self.is_kem() && !self.is_mldsa() && !self.is_hybrid_sign()
     }

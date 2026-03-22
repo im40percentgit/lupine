@@ -50,6 +50,7 @@ use ml_dsa::{
     VerifyingKey,
 };
 use rand_core::CryptoRng;
+use zeroize::Zeroize;
 
 use lupine_core::{Error, Result};
 
@@ -121,12 +122,33 @@ pub fn generate_keypair<P: KeyGen + MlDsaParams>(
 ///
 /// Use the type aliases [`MlDsa44SigningKey`], [`MlDsa65SigningKey`], or
 /// [`MlDsa87SigningKey`] for concrete parameter sets.
+///
+/// # Memory safety
+///
+/// `Drop` zeroizes the 32-byte `seed` field. The native `SigningKey<P>`
+/// handles its own zeroization via `ZeroizeOnDrop` (activated through the
+/// `ml-dsa/zeroize` feature).
 #[derive(Clone)]
 pub struct MlDsaSigningKey<P: MlDsaParams> {
     /// The 32-byte seed — the serializable form of this key.
     seed: [u8; 32],
     /// Derived expanded signing key (kept for signing without re-expansion).
     native: SigningKey<P>,
+}
+
+/// @decision DEC-SIGN-005
+/// @title Manual Drop for MlDsaSigningKey instead of ZeroizeOnDrop derive
+/// @status accepted
+/// @rationale `#[derive(ZeroizeOnDrop)]` requires every field to implement
+///   `Zeroize`. `SigningKey<P>` does not expose `Zeroize` as a supertrait of
+///   `MlDsaParams`, so the derive cannot verify it at the wrapper level. A
+///   manual `Drop` zeroizes the `seed` array owned by the wrapper; the native
+///   `SigningKey<P>` is handled by its own `ZeroizeOnDrop` via `ml-dsa/zeroize`.
+impl<P: MlDsaParams> Drop for MlDsaSigningKey<P> {
+    fn drop(&mut self) {
+        self.seed.zeroize();
+        // self.native: SigningKey<P> has ZeroizeOnDrop via ml-dsa/zeroize feature.
+    }
 }
 
 impl<P: MlDsaParams + KeyGen> MlDsaSigningKey<P> {

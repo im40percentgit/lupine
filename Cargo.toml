@@ -30,13 +30,13 @@ lupine-serial = { path = "crates/lupine-serial" }
 # PQC primitives (RustCrypto)
 # ml-kem 0.2 internally depends on kem = "0.3.0-pre.0" (not a stable release).
 # lupine-kem uses ml_kem::kem re-exports rather than a direct kem dep.
-ml-kem = "0.2"
+ml-kem = { version = "0.2", features = ["zeroize"] }
 # ml-dsa and slh-dsa are RC-only; pinned versions activated in Phase 2.
 # These crates require signature 3.x, rand_core 0.10, and rand 0.10 — all RC.
 # lupine-sign carries those RC deps directly so lupine-kem (which uses the
 # stable 0.6/0.8 versions) is unaffected. Cargo compiles both version trees.
-ml-dsa = "=0.1.0-rc.7"
-slh-dsa = "=0.2.0-rc.4"
+ml-dsa = { version = "=0.1.0-rc.7", features = ["zeroize"] }
+slh-dsa = { version = "=0.2.0-rc.4", features = ["zeroize"] }
 
 # Classical crypto (for hybrid modes — Phase 3)
 x25519-dalek = { version = "2", features = ["static_secrets"] }
