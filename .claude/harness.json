@@ -1,0 +1,63 @@
+{
+  "language": "rust",
+  "framework": null,
+  "packageManager": "cargo",
+  "typecheck": {
+    "command": "cargo check",
+    "perFile": false
+  },
+  "test": {
+    "command": "cargo test --workspace",
+    "framework": "built-in + proptest"
+  },
+  "lint": {
+    "command": "cargo clippy --workspace -- -D warnings"
+  },
+  "bench": {
+    "command": "cargo bench"
+  },
+  "qualityRules": {
+    "builtIn": [],
+    "custom": []
+  },
+  "protectedFiles": [
+    ".claude/settings.json",
+    ".claude/hooks/*"
+  ],
+  "features": {
+    "intakeScanner": true,
+    "telemetry": true
+  },
+  "registeredSkills": [
+    "architect",
+    "archon",
+    "autopilot",
+    "create-app",
+    "create-skill",
+    "design",
+    "do",
+    "doc-gen",
+    "experiment",
+    "fleet",
+    "live-preview",
+    "marshal",
+    "postmortem",
+    "prd",
+    "qa",
+    "refactor",
+    "research",
+    "research-fleet",
+    "review",
+    "scaffold",
+    "session-handoff",
+    "setup",
+    "systematic-debugging",
+    "test-gen"
+  ],
+  "registeredSkillCount": 24,
+  "agentTimeouts": {
+    "skill": 600000,
+    "research": 900000,
+    "build": 1800000
+  }
+}
