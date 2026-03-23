@@ -105,6 +105,13 @@ pub fn generate_keypair<P: KeyGen + MlDsaParams>(
         seed: seed_bytes,
         native: sk_native,
     };
+
+    // Zeroize the stack copy of seed_bytes — the canonical copy now lives in
+    // signing_key.seed and is protected by MlDsaSigningKey's Drop impl.
+    // B32::from() copies seed_bytes by value, so there is a brief window where
+    // two copies exist on the stack; this zeroize closes that window.
+    seed_bytes.zeroize();
+
     let verifying_key = MlDsaVerifyingKey {
         bytes: vk_bytes,
         native: vk_native,

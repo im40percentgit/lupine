@@ -23,6 +23,8 @@ clap = { workspace = true }
 anyhow = { workspace = true }
 # Home directory resolution.
 dirs-next = "2"
+# Zeroize sensitive key bytes loaded from disk before they are dropped.
+zeroize = { workspace = true }
 
 [dev-dependencies]
 # Temporary directories for integration tests.

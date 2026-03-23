@@ -50,6 +50,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{bail, Context, Result};
 use lupine::easy::{self, Keypair};
 use lupine_serial::pem;
+use zeroize::Zeroize;
 
 // Re-export the key types so callers can use them without importing lupine directly.
 pub use lupine_kem::hybrid::{HybridKemPublicKey768, HybridKemSecretKey768};
@@ -193,13 +194,20 @@ pub fn load_kem_sk(name: &str) -> Result<HybridKemSecretKey768> {
         )
     })?;
 
-    let sk_bytes = pem::decode_private_key_pem(&sk_pem)
+    let mut sk_bytes = pem::decode_private_key_pem(&sk_pem)
         .map_err(|e| anyhow::anyhow!("PEM decode kem_sk: {e}"))?;
     let pk_bytes = pem::decode_public_key_pem(&pk_pem)
         .map_err(|e| anyhow::anyhow!("PEM decode kem_pk: {e}"))?;
 
-    let mut sk = HybridKemSecretKey768::from_bytes(&sk_bytes)
-        .map_err(|e| anyhow::anyhow!("deserialize kem_sk: {e}"))?;
+    let sk_result = HybridKemSecretKey768::from_bytes(&sk_bytes)
+        .map_err(|e| anyhow::anyhow!("deserialize kem_sk: {e}"));
+
+    // Zeroize the raw secret key bytes now that they have been consumed by
+    // HybridKemSecretKey768::from_bytes(). The deserialized key owns its own
+    // copy; this Vec no longer needs to hold sensitive material.
+    sk_bytes.zeroize();
+
+    let mut sk = sk_result?;
 
     // Restore mlkem_pk_bytes from the public key file so decapsulation works.
     // The ML-KEM pk bytes are the X25519-pk-stripped suffix of the full pk bytes.
@@ -229,9 +237,14 @@ pub fn load_sign_sk(name: &str) -> Result<HybridSigningKey65> {
     let path = key_path(name, "sign_sk.pem")?;
     let pem_str =
         fs::read_to_string(&path).with_context(|| format!("cannot read {}", path.display()))?;
-    let bytes = pem::decode_private_key_pem(&pem_str)
+    let mut bytes = pem::decode_private_key_pem(&pem_str)
         .map_err(|e| anyhow::anyhow!("PEM decode sign_sk: {e}"))?;
-    HybridSigningKey65::from_bytes(&bytes).map_err(|e| anyhow::anyhow!("deserialize sign_sk: {e}"))
+    let sk_result =
+        HybridSigningKey65::from_bytes(&bytes).map_err(|e| anyhow::anyhow!("deserialize sign_sk: {e}"));
+    // Zeroize the raw secret key bytes now that they have been consumed by
+    // HybridSigningKey65::from_bytes(). The deserialized key holds its own copy.
+    bytes.zeroize();
+    sk_result
 }
 
 /// Load and deserialize the signing verifying key for `name`.

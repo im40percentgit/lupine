@@ -152,6 +152,7 @@ dependencies = [
  "lupine-serial",
  "lupine-sign",
  "tempfile",
+ "zeroize",
 ]
 
 [[package]]
@@ -872,6 +873,7 @@ dependencies = [
  "rand 0.10.0",
  "rand 0.8.5",
  "sha2 0.10.9",
+ "zeroize",
 ]
 
 [[package]]

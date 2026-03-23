@@ -70,6 +70,7 @@
 use chacha20poly1305::{aead::Aead, ChaCha20Poly1305, KeyInit};
 use hkdf::Hkdf;
 use sha2::Sha256;
+use zeroize::Zeroize;
 
 use lupine_kem::hybrid::{
     generate_keypair as kem_generate_keypair, HybridKemCiphertext768, HybridKemPublicKey768,
@@ -258,15 +259,19 @@ pub fn encrypt(recipient_pk: &HybridKemPublicKey768, plaintext: &[u8]) -> Result
     let cipher = ChaCha20Poly1305::new_from_slice(&aead_key)
         .expect("aead_key is always 32 bytes — length is a compile-time constant");
     let nonce = chacha20poly1305::Nonce::from(nonce_bytes);
-    let aead_ct = cipher
-        .encrypt(
-            &nonce,
-            chacha20poly1305::aead::Payload {
-                msg: plaintext,
-                aad: &aad,
-            },
-        )
-        .map_err(|_| Error::Aead)?;
+    let aead_result = cipher.encrypt(
+        &nonce,
+        chacha20poly1305::aead::Payload {
+            msg: plaintext,
+            aad: &aad,
+        },
+    );
+
+    // Zeroize the ephemeral AEAD key before returning, regardless of success
+    // or failure. The key material is no longer needed after this point.
+    aead_key.zeroize();
+
+    let aead_ct = aead_result.map_err(|_| Error::Aead)?;
 
     // Step 6: assemble wire format.
     // Layout: version(1) || kem_ct(1120) || nonce(12) || aead_ct+tag(N+16)
@@ -335,15 +340,20 @@ pub fn decrypt(sk: &HybridKemSecretKey768, sealed: &[u8]) -> Result<Vec<u8>> {
         <[u8; NONCE_LEN]>::try_from(nonce_bytes)
             .expect("nonce_bytes slice is always exactly NONCE_LEN bytes"),
     );
-    let plaintext = cipher
-        .decrypt(
-            &nonce,
-            chacha20poly1305::aead::Payload {
-                msg: aead_ct,
-                aad: &aad,
-            },
-        )
-        .map_err(|_| Error::Aead)?;
+    let decrypt_result = cipher.decrypt(
+        &nonce,
+        chacha20poly1305::aead::Payload {
+            msg: aead_ct,
+            aad: &aad,
+        },
+    );
+
+    // Zeroize the ephemeral AEAD key before returning, regardless of whether
+    // authentication succeeded or failed. An authentication failure reveals
+    // nothing about the key, but the key material is no longer needed either way.
+    aead_key.zeroize();
+
+    let plaintext = decrypt_result.map_err(|_| Error::Aead)?;
 
     Ok(plaintext)
 }

@@ -21,6 +21,8 @@ lupine-core = { workspace = true }
 lupine-kem = { workspace = true }
 lupine-sign = { workspace = true }
 lupine-serial = { workspace = true }
+# Needed to zeroize ephemeral AEAD key material in easy.rs after use.
+zeroize = { workspace = true }
 
 # easy-feature deps (optional — only compiled when `easy` feature is active)
 chacha20poly1305 = { workspace = true, optional = true }
