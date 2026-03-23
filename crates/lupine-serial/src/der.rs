@@ -35,12 +35,10 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use der::{
-    Decode, Encode, Sequence,
     asn1::{ObjectIdentifier, OctetString},
+    Decode, Encode, Sequence,
 };
-use lupine_core::{
-    Error, KemAlgorithm, Result, SerializationError, SignAlgorithm,
-};
+use lupine_core::{Error, KemAlgorithm, Result, SerializationError, SignAlgorithm};
 
 use crate::oid::{kem_from_oid, oid_for_kem, oid_for_sign, sign_from_oid};
 
@@ -82,7 +80,8 @@ pub fn encode_kem_public_key_der(alg: KemAlgorithm, key_bytes: &[u8]) -> Result<
             algorithm: oid_for_kem(alg),
             parameters: None,
         },
-        key_data: OctetString::new(key_bytes.to_vec()).map_err(|_| ser_err("key too large for DER"))?,
+        key_data: OctetString::new(key_bytes.to_vec())
+            .map_err(|_| ser_err("key too large for DER"))?,
     };
     info.to_der().map_err(|_| ser_err("DER encoding failed"))
 }
@@ -92,9 +91,9 @@ pub fn encode_kem_public_key_der(alg: KemAlgorithm, key_bytes: &[u8]) -> Result<
 /// Returns the `(algorithm, raw_key_bytes)` pair. The caller is responsible
 /// for interpreting the bytes as the correct concrete type.
 pub fn decode_kem_public_key_der(der_bytes: &[u8]) -> Result<(KemAlgorithm, Vec<u8>)> {
-    let info = KeyInfo::from_der(der_bytes).map_err(|_| ser_err("invalid DER for KEM public key"))?;
-    let alg = kem_from_oid(&info.algorithm.algorithm)
-        .ok_or_else(|| ser_err("unknown KEM OID"))?;
+    let info =
+        KeyInfo::from_der(der_bytes).map_err(|_| ser_err("invalid DER for KEM public key"))?;
+    let alg = kem_from_oid(&info.algorithm.algorithm).ok_or_else(|| ser_err("unknown KEM OID"))?;
     Ok((alg, info.key_data.as_bytes().to_vec()))
 }
 
@@ -122,17 +121,18 @@ pub fn encode_sign_public_key_der(alg: SignAlgorithm, key_bytes: &[u8]) -> Resul
             algorithm: oid_for_sign(alg),
             parameters: None,
         },
-        key_data: OctetString::new(key_bytes.to_vec()).map_err(|_| ser_err("key too large for DER"))?,
+        key_data: OctetString::new(key_bytes.to_vec())
+            .map_err(|_| ser_err("key too large for DER"))?,
     };
     info.to_der().map_err(|_| ser_err("DER encoding failed"))
 }
 
 /// Decode a signature verifying key from DER.
 pub fn decode_sign_public_key_der(der_bytes: &[u8]) -> Result<(SignAlgorithm, Vec<u8>)> {
-    let info = KeyInfo::from_der(der_bytes)
-        .map_err(|_| ser_err("invalid DER for sign public key"))?;
-    let alg = sign_from_oid(&info.algorithm.algorithm)
-        .ok_or_else(|| ser_err("unknown signature OID"))?;
+    let info =
+        KeyInfo::from_der(der_bytes).map_err(|_| ser_err("invalid DER for sign public key"))?;
+    let alg =
+        sign_from_oid(&info.algorithm.algorithm).ok_or_else(|| ser_err("unknown signature OID"))?;
     Ok((alg, info.key_data.as_bytes().to_vec()))
 }
 

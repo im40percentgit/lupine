@@ -37,23 +37,17 @@
 //!   so signatures are also reproducible.
 
 use hex;
-use lupine_sign::{
-    ml_dsa_generate_keypair,
-    slh_dsa_generate_keypair,
-    hybrid_generate_keypair,
-};
+use lupine_sign::{hybrid_generate_keypair, ml_dsa_generate_keypair, slh_dsa_generate_keypair};
 use ml_dsa::{KeyGen, MlDsaParams};
+use rand::{rngs::StdRng, SeedableRng};
 use slh_dsa::ParameterSet;
-use rand::{SeedableRng, rngs::StdRng};
 
 // ── KAT seeds ─────────────────────────────────────────────────────────────────
 
 /// Fixed seed for key generation in all sign KAT tests.
 const KAT_SEED: [u8; 32] = [
-    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-    0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10,
-    0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
-    0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20,
+    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10,
+    0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20,
 ];
 
 /// Test message used for all sign KAT operations.
@@ -66,17 +60,20 @@ const KAT_MESSAGE: &[u8] = b"lupine-sign KAT test message v1";
 /// ML-DSA-44: first 16 bytes of the verifying key, hex-encoded.
 const ML_DSA_44_VK_PREFIX: &str = "167cfd72f5a96194baf662a18302b2c0";
 /// ML-DSA-44: first 32 bytes of the signature, hex-encoded.
-const ML_DSA_44_SIG_PREFIX: &str = "a77c704f77377fba95d83a38762643d3883818bcc80d959be3fd876bc843255d";
+const ML_DSA_44_SIG_PREFIX: &str =
+    "a77c704f77377fba95d83a38762643d3883818bcc80d959be3fd876bc843255d";
 
 /// ML-DSA-65: first 16 bytes of the verifying key, hex-encoded.
 const ML_DSA_65_VK_PREFIX: &str = "4bea25f8c98c01e009ae87c6d800cb5d";
 /// ML-DSA-65: first 32 bytes of the signature, hex-encoded.
-const ML_DSA_65_SIG_PREFIX: &str = "5bf40c71665e0f530f09a367392bb3ae86b74d47e6329d9a30b3287e0527df72";
+const ML_DSA_65_SIG_PREFIX: &str =
+    "5bf40c71665e0f530f09a367392bb3ae86b74d47e6329d9a30b3287e0527df72";
 
 /// ML-DSA-87: first 16 bytes of the verifying key, hex-encoded.
 const ML_DSA_87_VK_PREFIX: &str = "5319bddf75df4489dbf42cfa483ea8f6";
 /// ML-DSA-87: first 32 bytes of the signature, hex-encoded.
-const ML_DSA_87_SIG_PREFIX: &str = "14b325f0c49e2ddfdcf065790ee5d280c97f7435959a1275966f3a7b67155a9b";
+const ML_DSA_87_SIG_PREFIX: &str =
+    "14b325f0c49e2ddfdcf065790ee5d280c97f7435959a1275966f3a7b67155a9b";
 
 /// SLH-DSA-SHA2-128s: first 16 bytes of the verifying key, hex-encoded.
 const SLH_DSA_SHA2_128S_VK_PREFIX: &str = "c0135a77f267c6419c9bc9ebf41caaf7";
@@ -99,7 +96,8 @@ where
     let sig = sk.sign(KAT_MESSAGE).expect("ML-DSA sign must succeed");
 
     // Verify: must always succeed with the correct key.
-    vk.verify(KAT_MESSAGE, &sig).expect("ML-DSA verify must succeed");
+    vk.verify(KAT_MESSAGE, &sig)
+        .expect("ML-DSA verify must succeed");
 
     let sig_prefix = hex::encode(&sig.to_bytes()[..32]);
 
@@ -116,7 +114,8 @@ fn run_slhdsa_kat<P: ParameterSet>() -> (String, String) {
     let sig = sk.sign(KAT_MESSAGE).expect("SLH-DSA sign must succeed");
 
     // Verify: must always succeed.
-    vk.verify(KAT_MESSAGE, &sig).expect("SLH-DSA verify must succeed");
+    vk.verify(KAT_MESSAGE, &sig)
+        .expect("SLH-DSA verify must succeed");
 
     let sig_prefix = hex::encode(&sig.to_bytes()[..32]);
 
@@ -136,7 +135,8 @@ where
     let vk_prefix = hex::encode(&vk_bytes[..16]);
 
     let sig = sk.sign(KAT_MESSAGE).expect("hybrid sign must succeed");
-    vk.verify(KAT_MESSAGE, &sig).expect("hybrid verify must succeed");
+    vk.verify(KAT_MESSAGE, &sig)
+        .expect("hybrid verify must succeed");
 
     let sig_bytes = sig.to_bytes();
     // sig is length-prefixed: [4 bytes len][64 bytes ed25519][4 bytes len][mldsa sig]
@@ -198,16 +198,28 @@ fn print_kat_values() {
 #[test]
 fn kat_mldsa_44_golden() {
     let (vk_prefix, sig_prefix) = run_mldsa_kat::<ml_dsa::MlDsa44>();
-    assert_eq!(vk_prefix, ML_DSA_44_VK_PREFIX, "ML-DSA-44 vk prefix regression");
-    assert_eq!(sig_prefix, ML_DSA_44_SIG_PREFIX, "ML-DSA-44 sig prefix regression");
+    assert_eq!(
+        vk_prefix, ML_DSA_44_VK_PREFIX,
+        "ML-DSA-44 vk prefix regression"
+    );
+    assert_eq!(
+        sig_prefix, ML_DSA_44_SIG_PREFIX,
+        "ML-DSA-44 sig prefix regression"
+    );
 }
 
 /// Regression: ML-DSA-65 vk and signature prefix must match golden values.
 #[test]
 fn kat_mldsa_65_golden() {
     let (vk_prefix, sig_prefix) = run_mldsa_kat::<ml_dsa::MlDsa65>();
-    assert_eq!(vk_prefix, ML_DSA_65_VK_PREFIX, "ML-DSA-65 vk prefix regression");
-    assert_eq!(sig_prefix, ML_DSA_65_SIG_PREFIX, "ML-DSA-65 sig prefix regression");
+    assert_eq!(
+        vk_prefix, ML_DSA_65_VK_PREFIX,
+        "ML-DSA-65 vk prefix regression"
+    );
+    assert_eq!(
+        sig_prefix, ML_DSA_65_SIG_PREFIX,
+        "ML-DSA-65 sig prefix regression"
+    );
 }
 
 /// Regression: ML-DSA-87 must match golden values.
@@ -219,8 +231,14 @@ fn kat_mldsa_87_golden() {
         .stack_size(32 * 1024 * 1024)
         .spawn(|| {
             let (vk_prefix, sig_prefix) = run_mldsa_kat::<ml_dsa::MlDsa87>();
-            assert_eq!(vk_prefix, ML_DSA_87_VK_PREFIX, "ML-DSA-87 vk prefix regression");
-            assert_eq!(sig_prefix, ML_DSA_87_SIG_PREFIX, "ML-DSA-87 sig prefix regression");
+            assert_eq!(
+                vk_prefix, ML_DSA_87_VK_PREFIX,
+                "ML-DSA-87 vk prefix regression"
+            );
+            assert_eq!(
+                sig_prefix, ML_DSA_87_SIG_PREFIX,
+                "ML-DSA-87 sig prefix regression"
+            );
         })
         .expect("thread spawn failed")
         .join()
@@ -255,7 +273,10 @@ fn kat_mldsa_65_deterministic() {
 #[test]
 fn kat_slhdsa_sha2_128s_golden() {
     let (vk_prefix, _sig_prefix) = run_slhdsa_kat::<slh_dsa::Sha2_128s>();
-    assert_eq!(vk_prefix, SLH_DSA_SHA2_128S_VK_PREFIX, "SLH-DSA-SHA2-128s vk prefix regression");
+    assert_eq!(
+        vk_prefix, SLH_DSA_SHA2_128S_VK_PREFIX,
+        "SLH-DSA-SHA2-128s vk prefix regression"
+    );
 }
 
 /// Determinism: SLH-DSA-SHA2-128s produces identical output for same seed.

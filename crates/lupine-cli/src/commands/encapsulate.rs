@@ -50,7 +50,8 @@ fn encapsulate_mlkem(
             let pk = MlKemPublicKey::<$P>::from_bytes($pk_bytes)
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?;
             let mut rng = OsRng;
-            let (ct, ss) = pk.encapsulate(&mut rng)
+            let (ct, ss) = pk
+                .encapsulate(&mut rng)
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?;
             let ct_bytes = ct.to_bytes().to_vec();
 
@@ -62,7 +63,10 @@ fn encapsulate_mlkem(
             }
             format::write_shared_secret($args.out_ss.as_deref(), ss.as_bytes())?;
             if $args.out_ss.is_some() {
-                eprintln!("Shared secret written to {}", $args.out_ss.as_deref().unwrap());
+                eprintln!(
+                    "Shared secret written to {}",
+                    $args.out_ss.as_deref().unwrap()
+                );
             }
             Ok(())
         }};
@@ -84,7 +88,8 @@ fn encapsulate_hybrid_kem(
             let pk = HybridKemPublicKey::<$P>::from_bytes($pk_bytes)
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?;
             let mut rng = OsRng;
-            let (ct, ss) = pk.encapsulate(&mut rng)
+            let (ct, ss) = pk
+                .encapsulate(&mut rng)
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?;
             let ct_bytes = ct.to_bytes();
 
@@ -96,7 +101,10 @@ fn encapsulate_hybrid_kem(
             }
             format::write_shared_secret($args.out_ss.as_deref(), ss.as_bytes())?;
             if $args.out_ss.is_some() {
-                eprintln!("Shared secret written to {}", $args.out_ss.as_deref().unwrap());
+                eprintln!(
+                    "Shared secret written to {}",
+                    $args.out_ss.as_deref().unwrap()
+                );
             }
             Ok(())
         }};

@@ -27,13 +27,12 @@
 //!   construction's correctness is also covered by the roundtrip integration
 //!   tests. SLH-DSA is not in this crate — see lupine-sign/tests/properties.rs.
 
-use proptest::prelude::*;
-use lupine_kem::{
-    generate_keypair,
-    MlKemCiphertext,
-    hybrid,
+use lupine_kem::{generate_keypair, hybrid, MlKemCiphertext};
+use ml_kem::{
+    kem::{Decapsulate, Encapsulate},
+    EncodedSizeUser, KemCore,
 };
-use ml_kem::{EncodedSizeUser, KemCore, kem::{Decapsulate, Encapsulate}};
+use proptest::prelude::*;
 use rand::rngs::OsRng;
 
 // ── ML-KEM property test helpers ─────────────────────────────────────────────
@@ -43,8 +42,7 @@ fn prop_mlkem_encap_decap_consistent<P>()
 where
     P: KemCore,
     P::DecapsulationKey: EncodedSizeUser,
-    P::EncapsulationKey: EncodedSizeUser
-        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::EncapsulationKey: EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     P::DecapsulationKey: Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
 {
@@ -60,18 +58,21 @@ fn prop_mlkem_key_independence<P>()
 where
     P: KemCore,
     P::DecapsulationKey: EncodedSizeUser,
-    P::EncapsulationKey: EncodedSizeUser
-        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::EncapsulationKey: EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     P::DecapsulationKey: Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
 {
     let (_sk_a, pk_a) = generate_keypair::<P>(&mut OsRng).expect("keygen A must succeed");
     let (sk_b, _pk_b) = generate_keypair::<P>(&mut OsRng).expect("keygen B must succeed");
 
-    let (ct, ss_a) = pk_a.encapsulate(&mut OsRng).expect("encap to pk_a must succeed");
+    let (ct, ss_a) = pk_a
+        .encapsulate(&mut OsRng)
+        .expect("encap to pk_a must succeed");
 
     // sk_b decapsulating a ct meant for pk_a gets implicit rejection — different value.
-    let ss_b_wrong = sk_b.decapsulate(&ct).expect("decap must not error (implicit rejection)");
+    let ss_b_wrong = sk_b
+        .decapsulate(&ct)
+        .expect("decap must not error (implicit rejection)");
     assert_ne!(
         ss_a.as_bytes(),
         ss_b_wrong.as_bytes(),
@@ -88,8 +89,7 @@ fn prop_mlkem_bitflip_changes_secret<P>(flip_byte: u8)
 where
     P: KemCore,
     P::DecapsulationKey: EncodedSizeUser,
-    P::EncapsulationKey: EncodedSizeUser
-        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::EncapsulationKey: EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     P::DecapsulationKey: Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
 {
@@ -102,7 +102,9 @@ where
     ct_bytes[idx] ^= 0xFF;
     let ct_bad = MlKemCiphertext::<P>::from_bytes(&ct_bytes);
 
-    let ss_bad = sk.decapsulate(&ct_bad).expect("decap must succeed (implicit rejection)");
+    let ss_bad = sk
+        .decapsulate(&ct_bad)
+        .expect("decap must succeed (implicit rejection)");
     assert_ne!(
         ss_good.as_bytes(),
         ss_bad.as_bytes(),
@@ -178,14 +180,14 @@ proptest! {
 fn prop_hybrid_encap_decap_consistent<P>()
 where
     P: KemCore,
-    P::DecapsulationKey: EncodedSizeUser
-        + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
-    P::EncapsulationKey: EncodedSizeUser
-        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::DecapsulationKey: EncodedSizeUser + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::EncapsulationKey: EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
 {
     let (sk, pk) = hybrid::generate_keypair::<P>(&mut OsRng).expect("hybrid keygen must succeed");
-    let (ct, ss_send) = pk.encapsulate(&mut OsRng).expect("hybrid encap must succeed");
+    let (ct, ss_send) = pk
+        .encapsulate(&mut OsRng)
+        .expect("hybrid encap must succeed");
     let ss_recv = sk.decapsulate(&ct).expect("hybrid decap must succeed");
     assert_eq!(ss_send.as_bytes(), ss_recv.as_bytes());
 }

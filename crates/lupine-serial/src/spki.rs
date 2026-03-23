@@ -34,8 +34,8 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use der::{
-    Decode, Encode, Sequence,
     asn1::{BitString, ObjectIdentifier},
+    Decode, Encode, Sequence,
 };
 use lupine_core::{Error, KemAlgorithm, Result, SerializationError, SignAlgorithm};
 
@@ -76,7 +76,8 @@ pub fn encode_kem_spki(alg: KemAlgorithm, key_bytes: &[u8]) -> Result<Vec<u8>> {
         subject_public_key: BitString::new(0, key_bytes)
             .map_err(|_| ser_err("key too large for SPKI BIT STRING"))?,
     };
-    spki.to_der().map_err(|_| ser_err("SPKI DER encoding failed"))
+    spki.to_der()
+        .map_err(|_| ser_err("SPKI DER encoding failed"))
 }
 
 /// Decode a KEM public key from a SubjectPublicKeyInfo DER blob.
@@ -107,7 +108,8 @@ pub fn encode_sign_spki(alg: SignAlgorithm, key_bytes: &[u8]) -> Result<Vec<u8>>
         subject_public_key: BitString::new(0, key_bytes)
             .map_err(|_| ser_err("key too large for SPKI BIT STRING"))?,
     };
-    spki.to_der().map_err(|_| ser_err("SPKI DER encoding failed"))
+    spki.to_der()
+        .map_err(|_| ser_err("SPKI DER encoding failed"))
 }
 
 /// Decode a signature verifying key from a SubjectPublicKeyInfo DER blob.

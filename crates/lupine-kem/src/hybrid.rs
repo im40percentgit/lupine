@@ -43,8 +43,8 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use ml_kem::{
-    EncodedSizeUser, KemCore,
     kem::{Decapsulate, Encapsulate},
+    EncodedSizeUser, KemCore,
 };
 use rand_core::CryptoRngCore;
 use x25519_dalek::{PublicKey as X25519PublicKey, StaticSecret as X25519StaticSecret};
@@ -148,7 +148,10 @@ where
         let x_bytes: [u8; 32] = bytes[..32].try_into().map_err(|_| Error::InvalidKey)?;
         let x25519_pk = X25519PublicKey::from(x_bytes);
         let mlkem_pk = MlKemPublicKey::<P>::from_bytes(&bytes[32..])?;
-        Ok(Self { x25519_pk, mlkem_pk })
+        Ok(Self {
+            x25519_pk,
+            mlkem_pk,
+        })
     }
 
     /// Serialize this hybrid public key to bytes.
@@ -187,7 +190,7 @@ where
         let combined = kitchen_sink(
             x25519_ss.as_bytes(),
             mlkem_ss.as_bytes(),
-            ephem_pk.as_bytes(),          // x25519 "ciphertext" = ephemeral pk
+            ephem_pk.as_bytes(), // x25519 "ciphertext" = ephemeral pk
             mlkem_ct.to_bytes(),
             self.x25519_pk.as_bytes(),
             self.mlkem_pk.to_bytes(),
@@ -302,10 +305,7 @@ where
     /// Returns [`Error::Decapsulation`] if the ML-KEM decapsulation fails.
     /// Returns [`Error::InvalidKey`] if the ML-KEM public key bytes are missing
     /// (the key was deserialized without calling [`Self::set_mlkem_pk_bytes`]).
-    pub fn decapsulate(
-        &self,
-        ct: &HybridKemCiphertext<P>,
-    ) -> Result<SharedSecret>
+    pub fn decapsulate(&self, ct: &HybridKemCiphertext<P>) -> Result<SharedSecret>
     where
         P::DecapsulationKey: Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
         ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
@@ -324,7 +324,7 @@ where
         let combined = kitchen_sink(
             x25519_ss.as_bytes(),
             mlkem_ss.as_bytes(),
-            ct.x25519_ephem_pk.as_bytes(),   // x25519 "ciphertext"
+            ct.x25519_ephem_pk.as_bytes(), // x25519 "ciphertext"
             ct.mlkem_ct.to_bytes(),
             self.x25519_pk.as_bytes(),
             &self.mlkem_pk_bytes,
@@ -370,7 +370,10 @@ impl<P: KemCore> HybridKemCiphertext<P> {
         let x_bytes: [u8; 32] = bytes[..32].try_into().map_err(|_| Error::Decapsulation)?;
         let x25519_ephem_pk = X25519PublicKey::from(x_bytes);
         let mlkem_ct = MlKemCiphertext::<P>::from_bytes(&bytes[32..]);
-        Ok(Self { x25519_ephem_pk, mlkem_ct })
+        Ok(Self {
+            x25519_ephem_pk,
+            mlkem_ct,
+        })
     }
 }
 
@@ -385,10 +388,10 @@ mod tests {
     fn round_trip<P>()
     where
         P: KemCore,
-        P::DecapsulationKey: EncodedSizeUser
-            + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
-        P::EncapsulationKey: EncodedSizeUser
-            + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+        P::DecapsulationKey:
+            EncodedSizeUser + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+        P::EncapsulationKey:
+            EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
         ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
     {
         let (sk, pk) = generate_keypair::<P>(&mut OsRng).expect("keygen failed");
@@ -402,11 +405,17 @@ mod tests {
     }
 
     #[test]
-    fn round_trip_512() { round_trip::<ml_kem::MlKem512>(); }
+    fn round_trip_512() {
+        round_trip::<ml_kem::MlKem512>();
+    }
     #[test]
-    fn round_trip_768() { round_trip::<ml_kem::MlKem768>(); }
+    fn round_trip_768() {
+        round_trip::<ml_kem::MlKem768>();
+    }
     #[test]
-    fn round_trip_1024() { round_trip::<ml_kem::MlKem1024>(); }
+    fn round_trip_1024() {
+        round_trip::<ml_kem::MlKem1024>();
+    }
 
     // Tamper detection: modifying the ML-KEM ciphertext bytes changes the
     // combined secret. (ML-KEM implicit rejection ensures decapsulation still
@@ -414,10 +423,10 @@ mod tests {
     fn tamper_detection<P>()
     where
         P: KemCore,
-        P::DecapsulationKey: EncodedSizeUser
-            + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
-        P::EncapsulationKey: EncodedSizeUser
-            + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+        P::DecapsulationKey:
+            EncodedSizeUser + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+        P::EncapsulationKey:
+            EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
         ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
     {
         let (sk, pk) = generate_keypair::<P>(&mut OsRng).expect("keygen failed");
@@ -429,7 +438,9 @@ mod tests {
         let ct_tampered = HybridKemCiphertext::<P>::from_bytes(&ct_bytes)
             .expect("from_bytes must succeed even for tampered ciphertext");
 
-        let ss_bad = sk.decapsulate(&ct_tampered).expect("decapsulate must succeed (implicit rejection)");
+        let ss_bad = sk
+            .decapsulate(&ct_tampered)
+            .expect("decapsulate must succeed (implicit rejection)");
         assert_ne!(
             ss_good.as_bytes(),
             ss_bad.as_bytes(),
@@ -438,18 +449,28 @@ mod tests {
     }
 
     #[test]
-    fn tamper_detection_512() { tamper_detection::<ml_kem::MlKem512>(); }
+    fn tamper_detection_512() {
+        tamper_detection::<ml_kem::MlKem512>();
+    }
     #[test]
-    fn tamper_detection_768() { tamper_detection::<ml_kem::MlKem768>(); }
+    fn tamper_detection_768() {
+        tamper_detection::<ml_kem::MlKem768>();
+    }
     #[test]
-    fn tamper_detection_1024() { tamper_detection::<ml_kem::MlKem1024>(); }
+    fn tamper_detection_1024() {
+        tamper_detection::<ml_kem::MlKem1024>();
+    }
 
     // Combined secret must be exactly 32 bytes.
     #[test]
     fn shared_secret_length() {
         let (sk, pk) = generate_keypair::<ml_kem::MlKem768>(&mut OsRng).expect("keygen failed");
         let (ct, ss) = pk.encapsulate(&mut OsRng).expect("encapsulate failed");
-        assert_eq!(ss.as_bytes().len(), 32, "combined shared secret must be 32 bytes");
+        assert_eq!(
+            ss.as_bytes().len(),
+            32,
+            "combined shared secret must be 32 bytes"
+        );
         let ss2 = sk.decapsulate(&ct).expect("decapsulate failed");
         assert_eq!(ss2.as_bytes().len(), 32);
     }
@@ -458,10 +479,10 @@ mod tests {
     fn key_serialization<P>()
     where
         P: KemCore,
-        P::DecapsulationKey: EncodedSizeUser
-            + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
-        P::EncapsulationKey: EncodedSizeUser
-            + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+        P::DecapsulationKey:
+            EncodedSizeUser + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+        P::EncapsulationKey:
+            EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
         ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
     {
         let (sk, pk) = generate_keypair::<P>(&mut OsRng).expect("keygen failed");
@@ -479,14 +500,26 @@ mod tests {
 
         // Both secret keys must produce the same shared secret.
         let (ct, ss1) = pk.encapsulate(&mut OsRng).expect("encapsulate failed");
-        let ss2 = sk2.decapsulate(&ct).expect("decapsulate with deserialized sk failed");
-        assert_eq!(ss1.as_bytes(), ss2.as_bytes(), "deserialized sk must produce same shared secret");
+        let ss2 = sk2
+            .decapsulate(&ct)
+            .expect("decapsulate with deserialized sk failed");
+        assert_eq!(
+            ss1.as_bytes(),
+            ss2.as_bytes(),
+            "deserialized sk must produce same shared secret"
+        );
     }
 
     #[test]
-    fn key_serialization_512() { key_serialization::<ml_kem::MlKem512>(); }
+    fn key_serialization_512() {
+        key_serialization::<ml_kem::MlKem512>();
+    }
     #[test]
-    fn key_serialization_768() { key_serialization::<ml_kem::MlKem768>(); }
+    fn key_serialization_768() {
+        key_serialization::<ml_kem::MlKem768>();
+    }
     #[test]
-    fn key_serialization_1024() { key_serialization::<ml_kem::MlKem1024>(); }
+    fn key_serialization_1024() {
+        key_serialization::<ml_kem::MlKem1024>();
+    }
 }

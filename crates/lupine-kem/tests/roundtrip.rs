@@ -22,10 +22,13 @@
 
 use lupine_kem::{
     generate_keypair,
-    MlKemCiphertext, MlKemPublicKey, MlKemSecretKey,
     hybrid::{self, HybridKemCiphertext, HybridKemPublicKey, HybridKemSecretKey},
+    MlKemCiphertext, MlKemPublicKey, MlKemSecretKey,
 };
-use ml_kem::{EncodedSizeUser, KemCore, kem::{Decapsulate, Encapsulate}};
+use ml_kem::{
+    kem::{Decapsulate, Encapsulate},
+    EncodedSizeUser, KemCore,
+};
 use rand::rngs::OsRng;
 
 // ── ML-KEM roundtrip helpers ──────────────────────────────────────────────────
@@ -35,8 +38,7 @@ fn mlkem_basic_roundtrip<P>()
 where
     P: KemCore,
     P::DecapsulationKey: EncodedSizeUser,
-    P::EncapsulationKey: EncodedSizeUser
-        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::EncapsulationKey: EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     P::DecapsulationKey: Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
 {
@@ -48,7 +50,11 @@ where
         ss_recv.as_bytes(),
         "shared secrets must match after roundtrip"
     );
-    assert_eq!(ss_send.as_bytes().len(), 32, "shared secret must be 32 bytes");
+    assert_eq!(
+        ss_send.as_bytes().len(),
+        32,
+        "shared secret must be 32 bytes"
+    );
 }
 
 /// Serialize public key → deserialize → encapsulate → original sk decapsulates.
@@ -59,8 +65,7 @@ fn mlkem_pk_serialize_deserialize_roundtrip<P>()
 where
     P: KemCore,
     P::DecapsulationKey: EncodedSizeUser,
-    P::EncapsulationKey: EncodedSizeUser
-        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::EncapsulationKey: EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     P::DecapsulationKey: Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
 {
@@ -71,13 +76,21 @@ where
 
     // Deserialize into a fresh public key object.
     let pk2 = MlKemPublicKey::<P>::from_bytes(&pk_bytes).expect("pk from_bytes must succeed");
-    assert_eq!(pk.to_bytes(), pk2.to_bytes(), "pk bytes must survive serialize→deserialize");
+    assert_eq!(
+        pk.to_bytes(),
+        pk2.to_bytes(),
+        "pk bytes must survive serialize→deserialize"
+    );
 
     // Encapsulate using the deserialized public key.
-    let (ct, ss_send) = pk2.encapsulate(&mut OsRng).expect("encap from deserialized pk must succeed");
+    let (ct, ss_send) = pk2
+        .encapsulate(&mut OsRng)
+        .expect("encap from deserialized pk must succeed");
 
     // Decapsulate using the original secret key — must still work.
-    let ss_recv = sk.decapsulate(&ct).expect("decap with original sk must succeed");
+    let ss_recv = sk
+        .decapsulate(&ct)
+        .expect("decap with original sk must succeed");
     assert_eq!(
         ss_send.as_bytes(),
         ss_recv.as_bytes(),
@@ -90,8 +103,7 @@ fn mlkem_sk_serialize_deserialize_roundtrip<P>()
 where
     P: KemCore,
     P::DecapsulationKey: EncodedSizeUser,
-    P::EncapsulationKey: EncodedSizeUser
-        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::EncapsulationKey: EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     P::DecapsulationKey: Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
 {
@@ -99,13 +111,19 @@ where
 
     let sk_bytes = sk.to_bytes().to_vec();
     let sk2 = MlKemSecretKey::<P>::from_bytes(&sk_bytes).expect("sk from_bytes must succeed");
-    assert_eq!(sk.to_bytes(), sk2.to_bytes(), "sk bytes must survive serialize→deserialize");
+    assert_eq!(
+        sk.to_bytes(),
+        sk2.to_bytes(),
+        "sk bytes must survive serialize→deserialize"
+    );
 
     // Encapsulate to the original public key.
     let (ct, ss_send) = pk.encapsulate(&mut OsRng).expect("encap must succeed");
 
     // Decapsulate using the deserialized secret key.
-    let ss_recv = sk2.decapsulate(&ct).expect("decap with deserialized sk must succeed");
+    let ss_recv = sk2
+        .decapsulate(&ct)
+        .expect("decap with deserialized sk must succeed");
     assert_eq!(
         ss_send.as_bytes(),
         ss_recv.as_bytes(),
@@ -122,8 +140,7 @@ fn mlkem_ciphertext_tamper_implicit_rejection<P>()
 where
     P: KemCore,
     P::DecapsulationKey: EncodedSizeUser,
-    P::EncapsulationKey: EncodedSizeUser
-        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::EncapsulationKey: EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     P::DecapsulationKey: Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
 {
@@ -149,15 +166,16 @@ fn mlkem_wrong_key_rejection<P>()
 where
     P: KemCore,
     P::DecapsulationKey: EncodedSizeUser,
-    P::EncapsulationKey: EncodedSizeUser
-        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::EncapsulationKey: EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     P::DecapsulationKey: Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
 {
     let (_sk_a, pk_a) = generate_keypair::<P>(&mut OsRng).expect("keygen A must succeed");
     let (sk_b, _pk_b) = generate_keypair::<P>(&mut OsRng).expect("keygen B must succeed");
 
-    let (ct, ss_a) = pk_a.encapsulate(&mut OsRng).expect("encap to pk_a must succeed");
+    let (ct, ss_a) = pk_a
+        .encapsulate(&mut OsRng)
+        .expect("encap to pk_a must succeed");
 
     // sk_b decapsulates a ciphertext meant for pk_a — implicit rejection means
     // we get a different value, not an error.
@@ -254,21 +272,25 @@ fn mlkem1024_wrong_key_rejection() {
 fn hybrid_basic_roundtrip<P>()
 where
     P: KemCore,
-    P::DecapsulationKey: EncodedSizeUser
-        + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
-    P::EncapsulationKey: EncodedSizeUser
-        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::DecapsulationKey: EncodedSizeUser + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::EncapsulationKey: EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
 {
     let (sk, pk) = hybrid::generate_keypair::<P>(&mut OsRng).expect("hybrid keygen must succeed");
-    let (ct, ss_send) = pk.encapsulate(&mut OsRng).expect("hybrid encap must succeed");
+    let (ct, ss_send) = pk
+        .encapsulate(&mut OsRng)
+        .expect("hybrid encap must succeed");
     let ss_recv = sk.decapsulate(&ct).expect("hybrid decap must succeed");
     assert_eq!(
         ss_send.as_bytes(),
         ss_recv.as_bytes(),
         "hybrid shared secrets must match"
     );
-    assert_eq!(ss_send.as_bytes().len(), 32, "hybrid shared secret must be 32 bytes");
+    assert_eq!(
+        ss_send.as_bytes().len(),
+        32,
+        "hybrid shared secret must be 32 bytes"
+    );
 }
 
 /// Hybrid serialize→deserialize→re-use cycle.
@@ -279,10 +301,8 @@ where
 fn hybrid_serialize_deserialize_roundtrip<P>()
 where
     P: KemCore,
-    P::DecapsulationKey: EncodedSizeUser
-        + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
-    P::EncapsulationKey: EncodedSizeUser
-        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::DecapsulationKey: EncodedSizeUser + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::EncapsulationKey: EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
 {
     let (sk, pk) = hybrid::generate_keypair::<P>(&mut OsRng).expect("hybrid keygen must succeed");
@@ -292,21 +312,29 @@ where
     let sk_bytes = sk.to_bytes();
 
     // Deserialize public key.
-    let pk2 = HybridKemPublicKey::<P>::from_bytes(&pk_bytes)
-        .expect("hybrid pk from_bytes must succeed");
-    assert_eq!(pk.to_bytes(), pk2.to_bytes(), "hybrid pk bytes must round-trip");
+    let pk2 =
+        HybridKemPublicKey::<P>::from_bytes(&pk_bytes).expect("hybrid pk from_bytes must succeed");
+    assert_eq!(
+        pk.to_bytes(),
+        pk2.to_bytes(),
+        "hybrid pk bytes must round-trip"
+    );
 
     // Deserialize secret key — then restore the cached ML-KEM pk bytes.
-    let mut sk2 = HybridKemSecretKey::<P>::from_bytes(&sk_bytes)
-        .expect("hybrid sk from_bytes must succeed");
+    let mut sk2 =
+        HybridKemSecretKey::<P>::from_bytes(&sk_bytes).expect("hybrid sk from_bytes must succeed");
     // pk_bytes[32..] is the ML-KEM public key portion (after the 32-byte X25519 pk).
     sk2.set_mlkem_pk_bytes(pk_bytes[32..].to_vec());
 
     // Encapsulate to deserialized pk.
-    let (ct, ss_send) = pk2.encapsulate(&mut OsRng).expect("encap to deserialized pk must succeed");
+    let (ct, ss_send) = pk2
+        .encapsulate(&mut OsRng)
+        .expect("encap to deserialized pk must succeed");
 
     // Decapsulate with deserialized sk.
-    let ss_recv = sk2.decapsulate(&ct).expect("decap with deserialized sk must succeed");
+    let ss_recv = sk2
+        .decapsulate(&ct)
+        .expect("decap with deserialized sk must succeed");
     assert_eq!(
         ss_send.as_bytes(),
         ss_recv.as_bytes(),
@@ -319,10 +347,8 @@ where
 fn hybrid_tamper_detection<P>()
 where
     P: KemCore,
-    P::DecapsulationKey: EncodedSizeUser
-        + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
-    P::EncapsulationKey: EncodedSizeUser
-        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::DecapsulationKey: EncodedSizeUser + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::EncapsulationKey: EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
 {
     let (sk, pk) = hybrid::generate_keypair::<P>(&mut OsRng).expect("keygen must succeed");
@@ -334,7 +360,9 @@ where
     let ct_tampered = HybridKemCiphertext::<P>::from_bytes(&ct_bytes)
         .expect("hybrid ct from_bytes must succeed even for tampered bytes");
 
-    let ss_bad = sk.decapsulate(&ct_tampered).expect("hybrid decap of tampered CT must succeed");
+    let ss_bad = sk
+        .decapsulate(&ct_tampered)
+        .expect("hybrid decap of tampered CT must succeed");
     assert_ne!(
         ss_good.as_bytes(),
         ss_bad.as_bytes(),
@@ -399,16 +427,40 @@ fn hybrid1024_tamper_detection() {
 #[test]
 fn mlkem_key_sizes_match_fips203() {
     let (sk512, pk512) = generate_keypair::<ml_kem::MlKem512>(&mut OsRng).unwrap();
-    assert_eq!(pk512.to_bytes().len(), 800, "ML-KEM-512 ek must be 800 bytes");
-    assert_eq!(sk512.to_bytes().len(), 1632, "ML-KEM-512 dk must be 1632 bytes");
+    assert_eq!(
+        pk512.to_bytes().len(),
+        800,
+        "ML-KEM-512 ek must be 800 bytes"
+    );
+    assert_eq!(
+        sk512.to_bytes().len(),
+        1632,
+        "ML-KEM-512 dk must be 1632 bytes"
+    );
 
     let (sk768, pk768) = generate_keypair::<ml_kem::MlKem768>(&mut OsRng).unwrap();
-    assert_eq!(pk768.to_bytes().len(), 1184, "ML-KEM-768 ek must be 1184 bytes");
-    assert_eq!(sk768.to_bytes().len(), 2400, "ML-KEM-768 dk must be 2400 bytes");
+    assert_eq!(
+        pk768.to_bytes().len(),
+        1184,
+        "ML-KEM-768 ek must be 1184 bytes"
+    );
+    assert_eq!(
+        sk768.to_bytes().len(),
+        2400,
+        "ML-KEM-768 dk must be 2400 bytes"
+    );
 
     let (sk1024, pk1024) = generate_keypair::<ml_kem::MlKem1024>(&mut OsRng).unwrap();
-    assert_eq!(pk1024.to_bytes().len(), 1568, "ML-KEM-1024 ek must be 1568 bytes");
-    assert_eq!(sk1024.to_bytes().len(), 3168, "ML-KEM-1024 dk must be 3168 bytes");
+    assert_eq!(
+        pk1024.to_bytes().len(),
+        1568,
+        "ML-KEM-1024 ek must be 1568 bytes"
+    );
+    assert_eq!(
+        sk1024.to_bytes().len(),
+        3168,
+        "ML-KEM-1024 dk must be 3168 bytes"
+    );
 }
 
 /// Ciphertext sizes must match FIPS 203 Table 2.
@@ -416,15 +468,27 @@ fn mlkem_key_sizes_match_fips203() {
 fn mlkem_ciphertext_sizes_match_fips203() {
     let (_, pk512) = generate_keypair::<ml_kem::MlKem512>(&mut OsRng).unwrap();
     let (ct512, _) = pk512.encapsulate(&mut OsRng).unwrap();
-    assert_eq!(ct512.to_bytes().len(), 768, "ML-KEM-512 ciphertext must be 768 bytes");
+    assert_eq!(
+        ct512.to_bytes().len(),
+        768,
+        "ML-KEM-512 ciphertext must be 768 bytes"
+    );
 
     let (_, pk768) = generate_keypair::<ml_kem::MlKem768>(&mut OsRng).unwrap();
     let (ct768, _) = pk768.encapsulate(&mut OsRng).unwrap();
-    assert_eq!(ct768.to_bytes().len(), 1088, "ML-KEM-768 ciphertext must be 1088 bytes");
+    assert_eq!(
+        ct768.to_bytes().len(),
+        1088,
+        "ML-KEM-768 ciphertext must be 1088 bytes"
+    );
 
     let (_, pk1024) = generate_keypair::<ml_kem::MlKem1024>(&mut OsRng).unwrap();
     let (ct1024, _) = pk1024.encapsulate(&mut OsRng).unwrap();
-    assert_eq!(ct1024.to_bytes().len(), 1568, "ML-KEM-1024 ciphertext must be 1568 bytes");
+    assert_eq!(
+        ct1024.to_bytes().len(),
+        1568,
+        "ML-KEM-1024 ciphertext must be 1568 bytes"
+    );
 }
 
 /// Invalid key bytes: wrong-length slices must fail gracefully.

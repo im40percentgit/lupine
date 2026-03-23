@@ -29,30 +29,26 @@
 //!   as constants — any change triggers a test failure requiring explicit review.
 
 use hex;
-use lupine_kem::{
-    generate_keypair,
-    hybrid,
+use lupine_kem::{generate_keypair, hybrid};
+use ml_kem::{
+    kem::{Decapsulate, Encapsulate},
+    EncodedSizeUser, KemCore,
 };
-use ml_kem::{EncodedSizeUser, KemCore, kem::{Decapsulate, Encapsulate}};
-use rand::SeedableRng;
 use rand::rngs::StdRng;
+use rand::SeedableRng;
 
 // ── KAT seeds ────────────────────────────────────────────────────────────────
 
 /// Fixed seed for key generation in all KAT tests.
 const KAT_SEED: [u8; 32] = [
-    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-    0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10,
-    0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
-    0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20,
+    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10,
+    0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20,
 ];
 
 /// Separate seed for the encapsulation RNG (keygen and encap must use independent RNGs).
 const ENCAP_SEED: [u8; 32] = [
-    0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8,
-    0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf, 0xb0,
-    0xb1, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8,
-    0xb9, 0xba, 0xbb, 0xbc, 0xbd, 0xbe, 0xbf, 0xc0,
+    0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf, 0xb0,
+    0xb1, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba, 0xbb, 0xbc, 0xbd, 0xbe, 0xbf, 0xc0,
 ];
 
 // ── Golden values — ML-KEM ────────────────────────────────────────────────────
@@ -84,8 +80,7 @@ fn run_mlkem_kat<P>() -> (String, String)
 where
     P: KemCore,
     P::DecapsulationKey: EncodedSizeUser,
-    P::EncapsulationKey: EncodedSizeUser
-        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::EncapsulationKey: EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     P::DecapsulationKey: Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
 {
@@ -112,21 +107,21 @@ where
 fn run_hybrid_kat<P>() -> (String, String)
 where
     P: KemCore,
-    P::DecapsulationKey: EncodedSizeUser
-        + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
-    P::EncapsulationKey: EncodedSizeUser
-        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::DecapsulationKey: EncodedSizeUser + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::EncapsulationKey: EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
 {
     let mut rng_keygen = StdRng::from_seed(KAT_SEED);
-    let (sk, pk) = hybrid::generate_keypair::<P>(&mut rng_keygen)
-        .expect("hybrid keygen must succeed");
+    let (sk, pk) =
+        hybrid::generate_keypair::<P>(&mut rng_keygen).expect("hybrid keygen must succeed");
 
     let pk_bytes = pk.to_bytes();
     let pk_prefix = hex::encode(&pk_bytes[..16]);
 
     let mut rng_encap = StdRng::from_seed(ENCAP_SEED);
-    let (ct, ss_send) = pk.encapsulate(&mut rng_encap).expect("hybrid encap must succeed");
+    let (ct, ss_send) = pk
+        .encapsulate(&mut rng_encap)
+        .expect("hybrid encap must succeed");
     let ss_recv = sk.decapsulate(&ct).expect("hybrid decap must succeed");
 
     assert_eq!(
@@ -178,7 +173,10 @@ fn print_kat_values() {
 #[test]
 fn kat_mlkem_512_golden() {
     let (pk_prefix, ss_hex) = run_mlkem_kat::<ml_kem::MlKem512>();
-    assert_eq!(pk_prefix, ML_KEM_512_PK_PREFIX, "ML-KEM-512 public key prefix regression");
+    assert_eq!(
+        pk_prefix, ML_KEM_512_PK_PREFIX,
+        "ML-KEM-512 public key prefix regression"
+    );
     assert_eq!(ss_hex, ML_KEM_512_SS, "ML-KEM-512 shared secret regression");
 }
 
@@ -186,7 +184,10 @@ fn kat_mlkem_512_golden() {
 #[test]
 fn kat_mlkem_768_golden() {
     let (pk_prefix, ss_hex) = run_mlkem_kat::<ml_kem::MlKem768>();
-    assert_eq!(pk_prefix, ML_KEM_768_PK_PREFIX, "ML-KEM-768 public key prefix regression");
+    assert_eq!(
+        pk_prefix, ML_KEM_768_PK_PREFIX,
+        "ML-KEM-768 public key prefix regression"
+    );
     assert_eq!(ss_hex, ML_KEM_768_SS, "ML-KEM-768 shared secret regression");
 }
 
@@ -194,8 +195,14 @@ fn kat_mlkem_768_golden() {
 #[test]
 fn kat_mlkem_1024_golden() {
     let (pk_prefix, ss_hex) = run_mlkem_kat::<ml_kem::MlKem1024>();
-    assert_eq!(pk_prefix, ML_KEM_1024_PK_PREFIX, "ML-KEM-1024 public key prefix regression");
-    assert_eq!(ss_hex, ML_KEM_1024_SS, "ML-KEM-1024 shared secret regression");
+    assert_eq!(
+        pk_prefix, ML_KEM_1024_PK_PREFIX,
+        "ML-KEM-1024 public key prefix regression"
+    );
+    assert_eq!(
+        ss_hex, ML_KEM_1024_SS,
+        "ML-KEM-1024 shared secret regression"
+    );
 }
 
 // ── Determinism tests ─────────────────────────────────────────────────────────
@@ -257,7 +264,11 @@ fn kat_hybrid_1024_deterministic() {
 #[test]
 fn kat_shared_secret_length_is_32_bytes() {
     for ss in [ML_KEM_512_SS, ML_KEM_768_SS, ML_KEM_1024_SS] {
-        assert_eq!(ss.len(), 64, "shared secret must be 32 bytes (64 hex chars)");
+        assert_eq!(
+            ss.len(),
+            64,
+            "shared secret must be 32 bytes (64 hex chars)"
+        );
     }
 }
 

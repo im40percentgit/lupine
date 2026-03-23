@@ -30,12 +30,9 @@
 //!   dimensions: hash family, security level, and small-mode signing.
 
 use lupine_sign::{
-    ml_dsa_generate_keypair,
-    MlDsaSigningKey, MlDsaVerifyingKey, MlDsaSignature,
-    slh_dsa_generate_keypair,
+    hybrid_generate_keypair, ml_dsa_generate_keypair, slh_dsa_generate_keypair, HybridSignature,
+    HybridSigningKey, HybridVerifyingKey, MlDsaSignature, MlDsaSigningKey, MlDsaVerifyingKey,
     SlhDsaSigningKey, SlhDsaVerifyingKey,
-    hybrid_generate_keypair,
-    HybridSigningKey, HybridVerifyingKey, HybridSignature,
 };
 use ml_dsa::{KeyGen, MlDsaParams};
 use slh_dsa::ParameterSet;
@@ -79,13 +76,18 @@ fn mldsa_sk_serialize_deserialize<P: KeyGen + MlDsaParams>() {
     let (sk, vk) = ml_dsa_generate_keypair::<P>(&mut rng).expect("keygen must succeed");
 
     let seed_bytes = sk.to_bytes().to_vec();
-    let sk2 = MlDsaSigningKey::<P>::from_bytes(&seed_bytes)
-        .expect("sk from_bytes must succeed");
-    assert_eq!(sk.to_bytes(), sk2.to_bytes(), "sk bytes must survive round-trip");
+    let sk2 = MlDsaSigningKey::<P>::from_bytes(&seed_bytes).expect("sk from_bytes must succeed");
+    assert_eq!(
+        sk.to_bytes(),
+        sk2.to_bytes(),
+        "sk bytes must survive round-trip"
+    );
 
     let msg = b"sk serialize-deserialize test";
     let sig1 = sk.sign(msg).expect("sign with original sk must succeed");
-    let sig2 = sk2.sign(msg).expect("sign with deserialized sk must succeed");
+    let sig2 = sk2
+        .sign(msg)
+        .expect("sign with deserialized sk must succeed");
 
     // Deterministic signing: same seed → same signature bytes.
     assert_eq!(
@@ -93,7 +95,8 @@ fn mldsa_sk_serialize_deserialize<P: KeyGen + MlDsaParams>() {
         sig2.to_bytes(),
         "deserialized sk (same seed) must produce identical signature"
     );
-    vk.verify(msg, &sig2).expect("deserialized sk's signature must verify");
+    vk.verify(msg, &sig2)
+        .expect("deserialized sk's signature must verify");
 }
 
 /// Verifying key serialize→deserialize: round-tripped vk verifies original sig.
@@ -102,13 +105,17 @@ fn mldsa_vk_serialize_deserialize<P: KeyGen + MlDsaParams>() {
     let (sk, vk) = ml_dsa_generate_keypair::<P>(&mut rng).expect("keygen must succeed");
 
     let vk_bytes = vk.to_bytes().to_vec();
-    let vk2 = MlDsaVerifyingKey::<P>::from_bytes(&vk_bytes)
-        .expect("vk from_bytes must succeed");
-    assert_eq!(vk.to_bytes(), vk2.to_bytes(), "vk bytes must survive round-trip");
+    let vk2 = MlDsaVerifyingKey::<P>::from_bytes(&vk_bytes).expect("vk from_bytes must succeed");
+    assert_eq!(
+        vk.to_bytes(),
+        vk2.to_bytes(),
+        "vk bytes must survive round-trip"
+    );
 
     let msg = b"vk serialize-deserialize test";
     let sig = sk.sign(msg).expect("sign must succeed");
-    vk2.verify(msg, &sig).expect("deserialized vk must verify signature");
+    vk2.verify(msg, &sig)
+        .expect("deserialized vk must verify signature");
 }
 
 /// Signature serialize→deserialize: round-tripped sig verifies.
@@ -119,9 +126,12 @@ fn mldsa_sig_serialize_deserialize<P: KeyGen + MlDsaParams>() {
     let sig = sk.sign(msg).expect("sign must succeed");
 
     let sig_bytes = sig.to_bytes().to_vec();
-    let sig2 = MlDsaSignature::<P>::from_bytes(&sig_bytes)
-        .expect("sig from_bytes must succeed");
-    assert_eq!(sig.to_bytes(), sig2.to_bytes(), "sig bytes must survive round-trip");
+    let sig2 = MlDsaSignature::<P>::from_bytes(&sig_bytes).expect("sig from_bytes must succeed");
+    assert_eq!(
+        sig.to_bytes(),
+        sig2.to_bytes(),
+        "sig bytes must survive round-trip"
+    );
     vk.verify(msg, &sig2).expect("deserialized sig must verify");
 }
 
@@ -173,53 +183,95 @@ fn mldsa_message_mutation<P: KeyGen + MlDsaParams>() {
 // ── ML-DSA-44 tests ───────────────────────────────────────────────────────────
 
 #[test]
-fn mldsa44_basic_roundtrip() { mldsa_basic_roundtrip::<ml_dsa::MlDsa44>(); }
+fn mldsa44_basic_roundtrip() {
+    mldsa_basic_roundtrip::<ml_dsa::MlDsa44>();
+}
 #[test]
-fn mldsa44_sk_serialize_deserialize() { mldsa_sk_serialize_deserialize::<ml_dsa::MlDsa44>(); }
+fn mldsa44_sk_serialize_deserialize() {
+    mldsa_sk_serialize_deserialize::<ml_dsa::MlDsa44>();
+}
 #[test]
-fn mldsa44_vk_serialize_deserialize() { mldsa_vk_serialize_deserialize::<ml_dsa::MlDsa44>(); }
+fn mldsa44_vk_serialize_deserialize() {
+    mldsa_vk_serialize_deserialize::<ml_dsa::MlDsa44>();
+}
 #[test]
-fn mldsa44_sig_serialize_deserialize() { mldsa_sig_serialize_deserialize::<ml_dsa::MlDsa44>(); }
+fn mldsa44_sig_serialize_deserialize() {
+    mldsa_sig_serialize_deserialize::<ml_dsa::MlDsa44>();
+}
 #[test]
-fn mldsa44_wrong_key_rejection() { mldsa_wrong_key_rejection::<ml_dsa::MlDsa44>(); }
+fn mldsa44_wrong_key_rejection() {
+    mldsa_wrong_key_rejection::<ml_dsa::MlDsa44>();
+}
 #[test]
-fn mldsa44_tamper_detection() { mldsa_tamper_detection::<ml_dsa::MlDsa44>(); }
+fn mldsa44_tamper_detection() {
+    mldsa_tamper_detection::<ml_dsa::MlDsa44>();
+}
 #[test]
-fn mldsa44_message_mutation() { mldsa_message_mutation::<ml_dsa::MlDsa44>(); }
+fn mldsa44_message_mutation() {
+    mldsa_message_mutation::<ml_dsa::MlDsa44>();
+}
 
 // ── ML-DSA-65 tests ───────────────────────────────────────────────────────────
 
 #[test]
-fn mldsa65_basic_roundtrip() { mldsa_basic_roundtrip::<ml_dsa::MlDsa65>(); }
+fn mldsa65_basic_roundtrip() {
+    mldsa_basic_roundtrip::<ml_dsa::MlDsa65>();
+}
 #[test]
-fn mldsa65_sk_serialize_deserialize() { mldsa_sk_serialize_deserialize::<ml_dsa::MlDsa65>(); }
+fn mldsa65_sk_serialize_deserialize() {
+    mldsa_sk_serialize_deserialize::<ml_dsa::MlDsa65>();
+}
 #[test]
-fn mldsa65_vk_serialize_deserialize() { mldsa_vk_serialize_deserialize::<ml_dsa::MlDsa65>(); }
+fn mldsa65_vk_serialize_deserialize() {
+    mldsa_vk_serialize_deserialize::<ml_dsa::MlDsa65>();
+}
 #[test]
-fn mldsa65_sig_serialize_deserialize() { mldsa_sig_serialize_deserialize::<ml_dsa::MlDsa65>(); }
+fn mldsa65_sig_serialize_deserialize() {
+    mldsa_sig_serialize_deserialize::<ml_dsa::MlDsa65>();
+}
 #[test]
-fn mldsa65_wrong_key_rejection() { mldsa_wrong_key_rejection::<ml_dsa::MlDsa65>(); }
+fn mldsa65_wrong_key_rejection() {
+    mldsa_wrong_key_rejection::<ml_dsa::MlDsa65>();
+}
 #[test]
-fn mldsa65_tamper_detection() { mldsa_tamper_detection::<ml_dsa::MlDsa65>(); }
+fn mldsa65_tamper_detection() {
+    mldsa_tamper_detection::<ml_dsa::MlDsa65>();
+}
 #[test]
-fn mldsa65_message_mutation() { mldsa_message_mutation::<ml_dsa::MlDsa65>(); }
+fn mldsa65_message_mutation() {
+    mldsa_message_mutation::<ml_dsa::MlDsa65>();
+}
 
 // ── ML-DSA-87 tests (large stack) ────────────────────────────────────────────
 
 #[test]
-fn mldsa87_basic_roundtrip() { with_large_stack(|| mldsa_basic_roundtrip::<ml_dsa::MlDsa87>()); }
+fn mldsa87_basic_roundtrip() {
+    with_large_stack(|| mldsa_basic_roundtrip::<ml_dsa::MlDsa87>());
+}
 #[test]
-fn mldsa87_sk_serialize_deserialize() { with_large_stack(|| mldsa_sk_serialize_deserialize::<ml_dsa::MlDsa87>()); }
+fn mldsa87_sk_serialize_deserialize() {
+    with_large_stack(|| mldsa_sk_serialize_deserialize::<ml_dsa::MlDsa87>());
+}
 #[test]
-fn mldsa87_vk_serialize_deserialize() { with_large_stack(|| mldsa_vk_serialize_deserialize::<ml_dsa::MlDsa87>()); }
+fn mldsa87_vk_serialize_deserialize() {
+    with_large_stack(|| mldsa_vk_serialize_deserialize::<ml_dsa::MlDsa87>());
+}
 #[test]
-fn mldsa87_sig_serialize_deserialize() { with_large_stack(|| mldsa_sig_serialize_deserialize::<ml_dsa::MlDsa87>()); }
+fn mldsa87_sig_serialize_deserialize() {
+    with_large_stack(|| mldsa_sig_serialize_deserialize::<ml_dsa::MlDsa87>());
+}
 #[test]
-fn mldsa87_wrong_key_rejection() { with_large_stack(|| mldsa_wrong_key_rejection::<ml_dsa::MlDsa87>()); }
+fn mldsa87_wrong_key_rejection() {
+    with_large_stack(|| mldsa_wrong_key_rejection::<ml_dsa::MlDsa87>());
+}
 #[test]
-fn mldsa87_tamper_detection() { with_large_stack(|| mldsa_tamper_detection::<ml_dsa::MlDsa87>()); }
+fn mldsa87_tamper_detection() {
+    with_large_stack(|| mldsa_tamper_detection::<ml_dsa::MlDsa87>());
+}
 #[test]
-fn mldsa87_message_mutation() { with_large_stack(|| mldsa_message_mutation::<ml_dsa::MlDsa87>()); }
+fn mldsa87_message_mutation() {
+    with_large_stack(|| mldsa_message_mutation::<ml_dsa::MlDsa87>());
+}
 
 // ── Structural invariants: ML-DSA key/sig sizes ───────────────────────────────
 
@@ -233,12 +285,28 @@ fn mldsa_key_sizes_match_fips204() {
     let mut rng = make_rng();
 
     let (sk44, vk44) = ml_dsa_generate_keypair::<ml_dsa::MlDsa44>(&mut rng).unwrap();
-    assert_eq!(sk44.to_bytes().len(), 32, "ML-DSA-44 sk seed must be 32 bytes");
-    assert_eq!(vk44.to_bytes().len(), 1312, "ML-DSA-44 vk must be 1312 bytes");
+    assert_eq!(
+        sk44.to_bytes().len(),
+        32,
+        "ML-DSA-44 sk seed must be 32 bytes"
+    );
+    assert_eq!(
+        vk44.to_bytes().len(),
+        1312,
+        "ML-DSA-44 vk must be 1312 bytes"
+    );
 
     let (sk65, vk65) = ml_dsa_generate_keypair::<ml_dsa::MlDsa65>(&mut rng).unwrap();
-    assert_eq!(sk65.to_bytes().len(), 32, "ML-DSA-65 sk seed must be 32 bytes");
-    assert_eq!(vk65.to_bytes().len(), 1952, "ML-DSA-65 vk must be 1952 bytes");
+    assert_eq!(
+        sk65.to_bytes().len(),
+        32,
+        "ML-DSA-65 sk seed must be 32 bytes"
+    );
+    assert_eq!(
+        vk65.to_bytes().len(),
+        1952,
+        "ML-DSA-65 vk must be 1952 bytes"
+    );
 }
 
 #[test]
@@ -248,11 +316,19 @@ fn mldsa_signature_sizes_match_fips204() {
 
     let (sk44, _) = ml_dsa_generate_keypair::<ml_dsa::MlDsa44>(&mut rng).unwrap();
     let sig44 = sk44.sign(msg).unwrap();
-    assert_eq!(sig44.to_bytes().len(), 2420, "ML-DSA-44 sig must be 2420 bytes");
+    assert_eq!(
+        sig44.to_bytes().len(),
+        2420,
+        "ML-DSA-44 sig must be 2420 bytes"
+    );
 
     let (sk65, _) = ml_dsa_generate_keypair::<ml_dsa::MlDsa65>(&mut rng).unwrap();
     let sig65 = sk65.sign(msg).unwrap();
-    assert_eq!(sig65.to_bytes().len(), 3309, "ML-DSA-65 sig must be 3309 bytes");
+    assert_eq!(
+        sig65.to_bytes().len(),
+        3309,
+        "ML-DSA-65 sig must be 3309 bytes"
+    );
 }
 
 // ── SLH-DSA roundtrip helpers ─────────────────────────────────────────────────
@@ -270,20 +346,22 @@ fn slhdsa_sk_serialize_deserialize<P: ParameterSet>() {
     let (sk, vk) = slh_dsa_generate_keypair::<P>(&mut rng).expect("keygen must succeed");
 
     let sk_bytes = sk.to_bytes().to_vec();
-    let sk2 = SlhDsaSigningKey::<P>::from_bytes(&sk_bytes)
-        .expect("sk from_bytes must succeed");
+    let sk2 = SlhDsaSigningKey::<P>::from_bytes(&sk_bytes).expect("sk from_bytes must succeed");
     assert_eq!(sk.to_bytes(), sk2.to_bytes(), "sk bytes must round-trip");
 
     // Deterministic signing: both keys produce identical signatures.
     let msg = b"slh-dsa sk serialize test";
     let sig1 = sk.sign(msg).expect("sign with original sk must succeed");
-    let sig2 = sk2.sign(msg).expect("sign with deserialized sk must succeed");
+    let sig2 = sk2
+        .sign(msg)
+        .expect("sign with deserialized sk must succeed");
     assert_eq!(
         sig1.to_bytes(),
         sig2.to_bytes(),
         "deserialized sk must produce identical signature (deterministic signing)"
     );
-    vk.verify(msg, &sig2).expect("deserialized sk's signature must verify");
+    vk.verify(msg, &sig2)
+        .expect("deserialized sk's signature must verify");
 }
 
 fn slhdsa_vk_serialize_deserialize<P: ParameterSet>() {
@@ -291,13 +369,13 @@ fn slhdsa_vk_serialize_deserialize<P: ParameterSet>() {
     let (sk, vk) = slh_dsa_generate_keypair::<P>(&mut rng).expect("keygen must succeed");
 
     let vk_bytes = vk.to_bytes().to_vec();
-    let vk2 = SlhDsaVerifyingKey::<P>::from_bytes(&vk_bytes)
-        .expect("vk from_bytes must succeed");
+    let vk2 = SlhDsaVerifyingKey::<P>::from_bytes(&vk_bytes).expect("vk from_bytes must succeed");
     assert_eq!(vk.to_bytes(), vk2.to_bytes(), "vk bytes must round-trip");
 
     let msg = b"slh-dsa vk serialize test";
     let sig = sk.sign(msg).expect("sign must succeed");
-    vk2.verify(msg, &sig).expect("deserialized vk must verify signature");
+    vk2.verify(msg, &sig)
+        .expect("deserialized vk must verify signature");
 }
 
 fn slhdsa_wrong_key_rejection<P: ParameterSet>() {
@@ -315,23 +393,39 @@ fn slhdsa_wrong_key_rejection<P: ParameterSet>() {
 // ── SLH-DSA test instantiations (3 representative variants) ──────────────────
 
 #[test]
-fn slhdsa_sha2_128s_basic_roundtrip() { slhdsa_basic_roundtrip::<slh_dsa::Sha2_128s>(); }
+fn slhdsa_sha2_128s_basic_roundtrip() {
+    slhdsa_basic_roundtrip::<slh_dsa::Sha2_128s>();
+}
 #[test]
-fn slhdsa_sha2_128s_sk_serialize() { slhdsa_sk_serialize_deserialize::<slh_dsa::Sha2_128s>(); }
+fn slhdsa_sha2_128s_sk_serialize() {
+    slhdsa_sk_serialize_deserialize::<slh_dsa::Sha2_128s>();
+}
 #[test]
-fn slhdsa_sha2_128s_vk_serialize() { slhdsa_vk_serialize_deserialize::<slh_dsa::Sha2_128s>(); }
+fn slhdsa_sha2_128s_vk_serialize() {
+    slhdsa_vk_serialize_deserialize::<slh_dsa::Sha2_128s>();
+}
 #[test]
-fn slhdsa_sha2_128s_wrong_key() { slhdsa_wrong_key_rejection::<slh_dsa::Sha2_128s>(); }
+fn slhdsa_sha2_128s_wrong_key() {
+    slhdsa_wrong_key_rejection::<slh_dsa::Sha2_128s>();
+}
 
 #[test]
-fn slhdsa_shake_128s_basic_roundtrip() { slhdsa_basic_roundtrip::<slh_dsa::Shake128s>(); }
+fn slhdsa_shake_128s_basic_roundtrip() {
+    slhdsa_basic_roundtrip::<slh_dsa::Shake128s>();
+}
 #[test]
-fn slhdsa_shake_128s_sk_serialize() { slhdsa_sk_serialize_deserialize::<slh_dsa::Shake128s>(); }
+fn slhdsa_shake_128s_sk_serialize() {
+    slhdsa_sk_serialize_deserialize::<slh_dsa::Shake128s>();
+}
 
 #[test]
-fn slhdsa_sha2_256s_basic_roundtrip() { slhdsa_basic_roundtrip::<slh_dsa::Sha2_256s>(); }
+fn slhdsa_sha2_256s_basic_roundtrip() {
+    slhdsa_basic_roundtrip::<slh_dsa::Sha2_256s>();
+}
 #[test]
-fn slhdsa_sha2_256s_sk_serialize() { slhdsa_sk_serialize_deserialize::<slh_dsa::Sha2_256s>(); }
+fn slhdsa_sha2_256s_sk_serialize() {
+    slhdsa_sk_serialize_deserialize::<slh_dsa::Sha2_256s>();
+}
 
 // ── SLH-DSA structural invariants ────────────────────────────────────────────
 
@@ -345,7 +439,11 @@ fn slhdsa_sha2_128s_key_sizes() {
     assert_eq!(vk.to_bytes().len(), 32, "SHA2-128s vk must be 32 bytes");
 
     let sig = sk.sign(b"size check").unwrap();
-    assert_eq!(sig.to_bytes().len(), 7856, "SHA2-128s sig must be 7856 bytes");
+    assert_eq!(
+        sig.to_bytes().len(),
+        7856,
+        "SHA2-128s sig must be 7856 bytes"
+    );
 }
 
 // ── Hybrid Ed25519+ML-DSA roundtrip helpers ───────────────────────────────────
@@ -363,20 +461,27 @@ fn hybrid_sk_serialize_deserialize<P: KeyGen + MlDsaParams>() {
     let (sk, vk) = hybrid_generate_keypair::<P>(&mut rng).expect("keygen must succeed");
 
     let sk_bytes = sk.to_bytes();
-    let sk2 = HybridSigningKey::<P>::from_bytes(&sk_bytes)
-        .expect("hybrid sk from_bytes must succeed");
-    assert_eq!(sk.to_bytes(), sk2.to_bytes(), "hybrid sk bytes must round-trip");
+    let sk2 =
+        HybridSigningKey::<P>::from_bytes(&sk_bytes).expect("hybrid sk from_bytes must succeed");
+    assert_eq!(
+        sk.to_bytes(),
+        sk2.to_bytes(),
+        "hybrid sk bytes must round-trip"
+    );
 
     // Deterministic: both keys produce identical signatures.
     let msg = b"hybrid sk serialize test";
     let sig1 = sk.sign(msg).expect("sign with original sk must succeed");
-    let sig2 = sk2.sign(msg).expect("sign with deserialized sk must succeed");
+    let sig2 = sk2
+        .sign(msg)
+        .expect("sign with deserialized sk must succeed");
     assert_eq!(
         sig1.to_bytes(),
         sig2.to_bytes(),
         "deserialized hybrid sk must produce identical signature"
     );
-    vk.verify(msg, &sig2).expect("deserialized hybrid sk's signature must verify");
+    vk.verify(msg, &sig2)
+        .expect("deserialized hybrid sk's signature must verify");
 }
 
 fn hybrid_vk_serialize_deserialize<P: KeyGen + MlDsaParams>() {
@@ -384,13 +489,18 @@ fn hybrid_vk_serialize_deserialize<P: KeyGen + MlDsaParams>() {
     let (sk, vk) = hybrid_generate_keypair::<P>(&mut rng).expect("keygen must succeed");
 
     let vk_bytes = vk.to_bytes();
-    let vk2 = HybridVerifyingKey::<P>::from_bytes(&vk_bytes)
-        .expect("hybrid vk from_bytes must succeed");
-    assert_eq!(vk.to_bytes(), vk2.to_bytes(), "hybrid vk bytes must round-trip");
+    let vk2 =
+        HybridVerifyingKey::<P>::from_bytes(&vk_bytes).expect("hybrid vk from_bytes must succeed");
+    assert_eq!(
+        vk.to_bytes(),
+        vk2.to_bytes(),
+        "hybrid vk bytes must round-trip"
+    );
 
     let msg = b"hybrid vk serialize test";
     let sig = sk.sign(msg).expect("sign must succeed");
-    vk2.verify(msg, &sig).expect("deserialized hybrid vk must verify");
+    vk2.verify(msg, &sig)
+        .expect("deserialized hybrid vk must verify");
 }
 
 fn hybrid_wrong_key_rejection<P: KeyGen + MlDsaParams>() {
@@ -412,41 +522,74 @@ fn hybrid_sig_serialize_deserialize<P: KeyGen + MlDsaParams>() {
     let sig = sk.sign(msg).expect("sign must succeed");
 
     let sig_bytes = sig.to_bytes();
-    let sig2 = HybridSignature::<P>::from_bytes(&sig_bytes)
-        .expect("hybrid sig from_bytes must succeed");
-    assert_eq!(sig.to_bytes(), sig2.to_bytes(), "hybrid sig bytes must round-trip");
-    vk.verify(msg, &sig2).expect("deserialized hybrid sig must verify");
+    let sig2 =
+        HybridSignature::<P>::from_bytes(&sig_bytes).expect("hybrid sig from_bytes must succeed");
+    assert_eq!(
+        sig.to_bytes(),
+        sig2.to_bytes(),
+        "hybrid sig bytes must round-trip"
+    );
+    vk.verify(msg, &sig2)
+        .expect("deserialized hybrid sig must verify");
 }
 
 // ── Hybrid test instantiations ────────────────────────────────────────────────
 
 #[test]
-fn hybrid44_basic_roundtrip() { with_large_stack(|| hybrid_basic_roundtrip::<ml_dsa::MlDsa44>()); }
+fn hybrid44_basic_roundtrip() {
+    with_large_stack(|| hybrid_basic_roundtrip::<ml_dsa::MlDsa44>());
+}
 #[test]
-fn hybrid44_sk_serialize_deserialize() { with_large_stack(|| hybrid_sk_serialize_deserialize::<ml_dsa::MlDsa44>()); }
+fn hybrid44_sk_serialize_deserialize() {
+    with_large_stack(|| hybrid_sk_serialize_deserialize::<ml_dsa::MlDsa44>());
+}
 #[test]
-fn hybrid44_vk_serialize_deserialize() { with_large_stack(|| hybrid_vk_serialize_deserialize::<ml_dsa::MlDsa44>()); }
+fn hybrid44_vk_serialize_deserialize() {
+    with_large_stack(|| hybrid_vk_serialize_deserialize::<ml_dsa::MlDsa44>());
+}
 #[test]
-fn hybrid44_wrong_key_rejection() { with_large_stack(|| hybrid_wrong_key_rejection::<ml_dsa::MlDsa44>()); }
+fn hybrid44_wrong_key_rejection() {
+    with_large_stack(|| hybrid_wrong_key_rejection::<ml_dsa::MlDsa44>());
+}
 #[test]
-fn hybrid44_sig_serialize_deserialize() { with_large_stack(|| hybrid_sig_serialize_deserialize::<ml_dsa::MlDsa44>()); }
+fn hybrid44_sig_serialize_deserialize() {
+    with_large_stack(|| hybrid_sig_serialize_deserialize::<ml_dsa::MlDsa44>());
+}
 
 #[test]
-fn hybrid65_basic_roundtrip() { with_large_stack(|| hybrid_basic_roundtrip::<ml_dsa::MlDsa65>()); }
+fn hybrid65_basic_roundtrip() {
+    with_large_stack(|| hybrid_basic_roundtrip::<ml_dsa::MlDsa65>());
+}
 #[test]
-fn hybrid65_sk_serialize_deserialize() { with_large_stack(|| hybrid_sk_serialize_deserialize::<ml_dsa::MlDsa65>()); }
+fn hybrid65_sk_serialize_deserialize() {
+    with_large_stack(|| hybrid_sk_serialize_deserialize::<ml_dsa::MlDsa65>());
+}
 #[test]
-fn hybrid65_vk_serialize_deserialize() { with_large_stack(|| hybrid_vk_serialize_deserialize::<ml_dsa::MlDsa65>()); }
+fn hybrid65_vk_serialize_deserialize() {
+    with_large_stack(|| hybrid_vk_serialize_deserialize::<ml_dsa::MlDsa65>());
+}
 #[test]
-fn hybrid65_wrong_key_rejection() { with_large_stack(|| hybrid_wrong_key_rejection::<ml_dsa::MlDsa65>()); }
+fn hybrid65_wrong_key_rejection() {
+    with_large_stack(|| hybrid_wrong_key_rejection::<ml_dsa::MlDsa65>());
+}
 #[test]
-fn hybrid65_sig_serialize_deserialize() { with_large_stack(|| hybrid_sig_serialize_deserialize::<ml_dsa::MlDsa65>()); }
+fn hybrid65_sig_serialize_deserialize() {
+    with_large_stack(|| hybrid_sig_serialize_deserialize::<ml_dsa::MlDsa65>());
+}
 
 #[test]
-fn hybrid87_basic_roundtrip() { with_large_stack(|| hybrid_basic_roundtrip::<ml_dsa::MlDsa87>()); }
+fn hybrid87_basic_roundtrip() {
+    with_large_stack(|| hybrid_basic_roundtrip::<ml_dsa::MlDsa87>());
+}
 #[test]
-fn hybrid87_sk_serialize_deserialize() { with_large_stack(|| hybrid_sk_serialize_deserialize::<ml_dsa::MlDsa87>()); }
+fn hybrid87_sk_serialize_deserialize() {
+    with_large_stack(|| hybrid_sk_serialize_deserialize::<ml_dsa::MlDsa87>());
+}
 #[test]
-fn hybrid87_vk_serialize_deserialize() { with_large_stack(|| hybrid_vk_serialize_deserialize::<ml_dsa::MlDsa87>()); }
+fn hybrid87_vk_serialize_deserialize() {
+    with_large_stack(|| hybrid_vk_serialize_deserialize::<ml_dsa::MlDsa87>());
+}
 #[test]
-fn hybrid87_wrong_key_rejection() { with_large_stack(|| hybrid_wrong_key_rejection::<ml_dsa::MlDsa87>()); }
+fn hybrid87_wrong_key_rejection() {
+    with_large_stack(|| hybrid_wrong_key_rejection::<ml_dsa::MlDsa87>());
+}

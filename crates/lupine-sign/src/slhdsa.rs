@@ -53,9 +53,9 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use slh_dsa::{ParameterSet, SigningKey, VerifyingKey};
-use slh_dsa::signature::{Keypair, Signer};
 use rand_core::CryptoRng;
+use slh_dsa::signature::{Keypair, Signer};
+use slh_dsa::{ParameterSet, SigningKey, VerifyingKey};
 use zeroize::Zeroize;
 
 use lupine_core::{Error, Result};
@@ -63,90 +63,90 @@ use lupine_core::{Error, Result};
 // ── SHA2 parameter set type aliases ──────────────────────────────────────────
 
 /// SLH-DSA-SHA2-128s signing key — NIST level 1, small signatures.
-pub type SlhDsaSha2_128sSigningKey   = SlhDsaSigningKey<slh_dsa::Sha2_128s>;
+pub type SlhDsaSha2_128sSigningKey = SlhDsaSigningKey<slh_dsa::Sha2_128s>;
 /// SLH-DSA-SHA2-128s verifying key.
 pub type SlhDsaSha2_128sVerifyingKey = SlhDsaVerifyingKey<slh_dsa::Sha2_128s>;
 /// SLH-DSA-SHA2-128s signature.
-pub type SlhDsaSha2_128sSignature    = SlhDsaSignature<slh_dsa::Sha2_128s>;
+pub type SlhDsaSha2_128sSignature = SlhDsaSignature<slh_dsa::Sha2_128s>;
 
 /// SLH-DSA-SHA2-128f signing key — NIST level 1, fast signing.
-pub type SlhDsaSha2_128fSigningKey   = SlhDsaSigningKey<slh_dsa::Sha2_128f>;
+pub type SlhDsaSha2_128fSigningKey = SlhDsaSigningKey<slh_dsa::Sha2_128f>;
 /// SLH-DSA-SHA2-128f verifying key.
 pub type SlhDsaSha2_128fVerifyingKey = SlhDsaVerifyingKey<slh_dsa::Sha2_128f>;
 /// SLH-DSA-SHA2-128f signature.
-pub type SlhDsaSha2_128fSignature    = SlhDsaSignature<slh_dsa::Sha2_128f>;
+pub type SlhDsaSha2_128fSignature = SlhDsaSignature<slh_dsa::Sha2_128f>;
 
 /// SLH-DSA-SHA2-192s signing key — NIST level 3, small signatures.
-pub type SlhDsaSha2_192sSigningKey   = SlhDsaSigningKey<slh_dsa::Sha2_192s>;
+pub type SlhDsaSha2_192sSigningKey = SlhDsaSigningKey<slh_dsa::Sha2_192s>;
 /// SLH-DSA-SHA2-192s verifying key.
 pub type SlhDsaSha2_192sVerifyingKey = SlhDsaVerifyingKey<slh_dsa::Sha2_192s>;
 /// SLH-DSA-SHA2-192s signature.
-pub type SlhDsaSha2_192sSignature    = SlhDsaSignature<slh_dsa::Sha2_192s>;
+pub type SlhDsaSha2_192sSignature = SlhDsaSignature<slh_dsa::Sha2_192s>;
 
 /// SLH-DSA-SHA2-192f signing key — NIST level 3, fast signing.
-pub type SlhDsaSha2_192fSigningKey   = SlhDsaSigningKey<slh_dsa::Sha2_192f>;
+pub type SlhDsaSha2_192fSigningKey = SlhDsaSigningKey<slh_dsa::Sha2_192f>;
 /// SLH-DSA-SHA2-192f verifying key.
 pub type SlhDsaSha2_192fVerifyingKey = SlhDsaVerifyingKey<slh_dsa::Sha2_192f>;
 /// SLH-DSA-SHA2-192f signature.
-pub type SlhDsaSha2_192fSignature    = SlhDsaSignature<slh_dsa::Sha2_192f>;
+pub type SlhDsaSha2_192fSignature = SlhDsaSignature<slh_dsa::Sha2_192f>;
 
 /// SLH-DSA-SHA2-256s signing key — NIST level 5, small signatures.
-pub type SlhDsaSha2_256sSigningKey   = SlhDsaSigningKey<slh_dsa::Sha2_256s>;
+pub type SlhDsaSha2_256sSigningKey = SlhDsaSigningKey<slh_dsa::Sha2_256s>;
 /// SLH-DSA-SHA2-256s verifying key.
 pub type SlhDsaSha2_256sVerifyingKey = SlhDsaVerifyingKey<slh_dsa::Sha2_256s>;
 /// SLH-DSA-SHA2-256s signature.
-pub type SlhDsaSha2_256sSignature    = SlhDsaSignature<slh_dsa::Sha2_256s>;
+pub type SlhDsaSha2_256sSignature = SlhDsaSignature<slh_dsa::Sha2_256s>;
 
 /// SLH-DSA-SHA2-256f signing key — NIST level 5, fast signing.
-pub type SlhDsaSha2_256fSigningKey   = SlhDsaSigningKey<slh_dsa::Sha2_256f>;
+pub type SlhDsaSha2_256fSigningKey = SlhDsaSigningKey<slh_dsa::Sha2_256f>;
 /// SLH-DSA-SHA2-256f verifying key.
 pub type SlhDsaSha2_256fVerifyingKey = SlhDsaVerifyingKey<slh_dsa::Sha2_256f>;
 /// SLH-DSA-SHA2-256f signature.
-pub type SlhDsaSha2_256fSignature    = SlhDsaSignature<slh_dsa::Sha2_256f>;
+pub type SlhDsaSha2_256fSignature = SlhDsaSignature<slh_dsa::Sha2_256f>;
 
 // ── SHAKE parameter set type aliases ─────────────────────────────────────────
 
 /// SLH-DSA-SHAKE-128s signing key — NIST level 1, small signatures.
-pub type SlhDsaShake128sSigningKey   = SlhDsaSigningKey<slh_dsa::Shake128s>;
+pub type SlhDsaShake128sSigningKey = SlhDsaSigningKey<slh_dsa::Shake128s>;
 /// SLH-DSA-SHAKE-128s verifying key.
 pub type SlhDsaShake128sVerifyingKey = SlhDsaVerifyingKey<slh_dsa::Shake128s>;
 /// SLH-DSA-SHAKE-128s signature.
-pub type SlhDsaShake128sSignature    = SlhDsaSignature<slh_dsa::Shake128s>;
+pub type SlhDsaShake128sSignature = SlhDsaSignature<slh_dsa::Shake128s>;
 
 /// SLH-DSA-SHAKE-128f signing key — NIST level 1, fast signing.
-pub type SlhDsaShake128fSigningKey   = SlhDsaSigningKey<slh_dsa::Shake128f>;
+pub type SlhDsaShake128fSigningKey = SlhDsaSigningKey<slh_dsa::Shake128f>;
 /// SLH-DSA-SHAKE-128f verifying key.
 pub type SlhDsaShake128fVerifyingKey = SlhDsaVerifyingKey<slh_dsa::Shake128f>;
 /// SLH-DSA-SHAKE-128f signature.
-pub type SlhDsaShake128fSignature    = SlhDsaSignature<slh_dsa::Shake128f>;
+pub type SlhDsaShake128fSignature = SlhDsaSignature<slh_dsa::Shake128f>;
 
 /// SLH-DSA-SHAKE-192s signing key — NIST level 3, small signatures.
-pub type SlhDsaShake192sSigningKey   = SlhDsaSigningKey<slh_dsa::Shake192s>;
+pub type SlhDsaShake192sSigningKey = SlhDsaSigningKey<slh_dsa::Shake192s>;
 /// SLH-DSA-SHAKE-192s verifying key.
 pub type SlhDsaShake192sVerifyingKey = SlhDsaVerifyingKey<slh_dsa::Shake192s>;
 /// SLH-DSA-SHAKE-192s signature.
-pub type SlhDsaShake192sSignature    = SlhDsaSignature<slh_dsa::Shake192s>;
+pub type SlhDsaShake192sSignature = SlhDsaSignature<slh_dsa::Shake192s>;
 
 /// SLH-DSA-SHAKE-192f signing key — NIST level 3, fast signing.
-pub type SlhDsaShake192fSigningKey   = SlhDsaSigningKey<slh_dsa::Shake192f>;
+pub type SlhDsaShake192fSigningKey = SlhDsaSigningKey<slh_dsa::Shake192f>;
 /// SLH-DSA-SHAKE-192f verifying key.
 pub type SlhDsaShake192fVerifyingKey = SlhDsaVerifyingKey<slh_dsa::Shake192f>;
 /// SLH-DSA-SHAKE-192f signature.
-pub type SlhDsaShake192fSignature    = SlhDsaSignature<slh_dsa::Shake192f>;
+pub type SlhDsaShake192fSignature = SlhDsaSignature<slh_dsa::Shake192f>;
 
 /// SLH-DSA-SHAKE-256s signing key — NIST level 5, small signatures.
-pub type SlhDsaShake256sSigningKey   = SlhDsaSigningKey<slh_dsa::Shake256s>;
+pub type SlhDsaShake256sSigningKey = SlhDsaSigningKey<slh_dsa::Shake256s>;
 /// SLH-DSA-SHAKE-256s verifying key.
 pub type SlhDsaShake256sVerifyingKey = SlhDsaVerifyingKey<slh_dsa::Shake256s>;
 /// SLH-DSA-SHAKE-256s signature.
-pub type SlhDsaShake256sSignature    = SlhDsaSignature<slh_dsa::Shake256s>;
+pub type SlhDsaShake256sSignature = SlhDsaSignature<slh_dsa::Shake256s>;
 
 /// SLH-DSA-SHAKE-256f signing key — NIST level 5, fast signing.
-pub type SlhDsaShake256fSigningKey   = SlhDsaSigningKey<slh_dsa::Shake256f>;
+pub type SlhDsaShake256fSigningKey = SlhDsaSigningKey<slh_dsa::Shake256f>;
 /// SLH-DSA-SHAKE-256f verifying key.
 pub type SlhDsaShake256fVerifyingKey = SlhDsaVerifyingKey<slh_dsa::Shake256f>;
 /// SLH-DSA-SHAKE-256f signature.
-pub type SlhDsaShake256fSignature    = SlhDsaSignature<slh_dsa::Shake256f>;
+pub type SlhDsaShake256fSignature = SlhDsaSignature<slh_dsa::Shake256f>;
 
 // ── Key generation ────────────────────────────────────────────────────────────
 
@@ -221,8 +221,7 @@ impl<P: ParameterSet> SlhDsaSigningKey<P> {
     /// Returns [`Error::InvalidKey`] if `bytes` is not the correct length for
     /// this parameter set.
     pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let native = SigningKey::<P>::try_from(bytes)
-            .map_err(|_| Error::InvalidKey)?;
+        let native = SigningKey::<P>::try_from(bytes).map_err(|_| Error::InvalidKey)?;
         Ok(Self {
             bytes: bytes.to_vec(),
             native,
@@ -243,10 +242,7 @@ impl<P: ParameterSet> SlhDsaSigningKey<P> {
     ///
     /// Returns [`Error::Signing`] if signing fails.
     pub fn sign(&self, message: &[u8]) -> Result<SlhDsaSignature<P>> {
-        let native_sig = self
-            .native
-            .try_sign(message)
-            .map_err(|_| Error::Signing)?;
+        let native_sig = self.native.try_sign(message).map_err(|_| Error::Signing)?;
         let sig_bytes = native_sig.to_bytes().to_vec();
         Ok(SlhDsaSignature {
             bytes: sig_bytes,
@@ -283,14 +279,16 @@ impl<P: ParameterSet> SlhDsaSigningKey<P> {
     pub fn verifying_key(&self) -> SlhDsaVerifyingKey<P> {
         let native_vk = self.native.verifying_key();
         let bytes = native_vk.to_bytes().to_vec();
-        SlhDsaVerifyingKey { bytes, native: native_vk }
+        SlhDsaVerifyingKey {
+            bytes,
+            native: native_vk,
+        }
     }
 }
 
 impl<P: ParameterSet> core::fmt::Debug for SlhDsaSigningKey<P> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.debug_struct("SlhDsaSigningKey")
-            .finish_non_exhaustive()
+        f.debug_struct("SlhDsaSigningKey").finish_non_exhaustive()
     }
 }
 
@@ -316,8 +314,7 @@ impl<P: ParameterSet> SlhDsaVerifyingKey<P> {
     /// Returns [`Error::InvalidKey`] if `bytes` is not the correct length for
     /// this parameter set.
     pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let native = VerifyingKey::<P>::try_from(bytes)
-            .map_err(|_| Error::InvalidKey)?;
+        let native = VerifyingKey::<P>::try_from(bytes).map_err(|_| Error::InvalidKey)?;
         Ok(Self {
             bytes: bytes.to_vec(),
             native,
@@ -365,8 +362,7 @@ impl<P: ParameterSet> SlhDsaSignature<P> {
     /// Returns [`Error::Verification`] if `bytes` cannot be decoded as a
     /// valid signature for this parameter set.
     pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let native = slh_dsa::Signature::<P>::try_from(bytes)
-            .map_err(|_| Error::Verification)?;
+        let native = slh_dsa::Signature::<P>::try_from(bytes).map_err(|_| Error::Verification)?;
         Ok(Self {
             bytes: bytes.to_vec(),
             native,
@@ -394,8 +390,7 @@ mod tests {
     // ── Round-trip helpers ───────────────────────────────────────────────────
 
     fn roundtrip<P: ParameterSet>() {
-        let (sk, vk) = generate_keypair::<P>(&mut make_rng())
-            .expect("keygen must succeed");
+        let (sk, vk) = generate_keypair::<P>(&mut make_rng()).expect("keygen must succeed");
         let msg = b"lupine slh-dsa test message";
         let sig = sk.sign(msg).expect("sign must succeed");
         vk.verify(msg, &sig).expect("verify must succeed");
@@ -423,59 +418,85 @@ mod tests {
     fn sk_serialization<P: ParameterSet>() {
         let (sk, _vk) = generate_keypair::<P>(&mut make_rng()).unwrap();
         let bytes = sk.to_bytes().to_vec();
-        let sk2 = SlhDsaSigningKey::<P>::from_bytes(&bytes)
-            .expect("sk round-trip must succeed");
+        let sk2 = SlhDsaSigningKey::<P>::from_bytes(&bytes).expect("sk round-trip must succeed");
         assert_eq!(sk.to_bytes(), sk2.to_bytes(), "sk bytes must round-trip");
     }
 
     fn vk_serialization<P: ParameterSet>() {
         let (_sk, vk) = generate_keypair::<P>(&mut make_rng()).unwrap();
         let bytes = vk.to_bytes().to_vec();
-        let vk2 = SlhDsaVerifyingKey::<P>::from_bytes(&bytes)
-            .expect("vk round-trip must succeed");
+        let vk2 = SlhDsaVerifyingKey::<P>::from_bytes(&bytes).expect("vk round-trip must succeed");
         assert_eq!(vk.to_bytes(), vk2.to_bytes(), "vk bytes must round-trip");
     }
 
     // ── SHA2 round-trip tests ────────────────────────────────────────────────
 
     #[test]
-    fn roundtrip_sha2_128s() { roundtrip::<slh_dsa::Sha2_128s>(); }
+    fn roundtrip_sha2_128s() {
+        roundtrip::<slh_dsa::Sha2_128s>();
+    }
     #[test]
-    fn roundtrip_sha2_192s() { roundtrip::<slh_dsa::Sha2_192s>(); }
+    fn roundtrip_sha2_192s() {
+        roundtrip::<slh_dsa::Sha2_192s>();
+    }
     #[test]
-    fn roundtrip_sha2_256s() { roundtrip::<slh_dsa::Sha2_256s>(); }
+    fn roundtrip_sha2_256s() {
+        roundtrip::<slh_dsa::Sha2_256s>();
+    }
 
     // ── SHAKE round-trip (one representative) ────────────────────────────────
 
     #[test]
-    fn roundtrip_shake_128s() { roundtrip::<slh_dsa::Shake128s>(); }
+    fn roundtrip_shake_128s() {
+        roundtrip::<slh_dsa::Shake128s>();
+    }
 
     // ── Tamper detection ─────────────────────────────────────────────────────
 
     #[test]
-    fn tamper_sha2_128s() { tamper_detection::<slh_dsa::Sha2_128s>(); }
+    fn tamper_sha2_128s() {
+        tamper_detection::<slh_dsa::Sha2_128s>();
+    }
     #[test]
-    fn tamper_shake_128s() { tamper_detection::<slh_dsa::Shake128s>(); }
+    fn tamper_shake_128s() {
+        tamper_detection::<slh_dsa::Shake128s>();
+    }
 
     // ── Key serialization ────────────────────────────────────────────────────
 
     #[test]
-    fn sk_serialization_sha2_128s() { sk_serialization::<slh_dsa::Sha2_128s>(); }
+    fn sk_serialization_sha2_128s() {
+        sk_serialization::<slh_dsa::Sha2_128s>();
+    }
     #[test]
-    fn sk_serialization_sha2_192s() { sk_serialization::<slh_dsa::Sha2_192s>(); }
+    fn sk_serialization_sha2_192s() {
+        sk_serialization::<slh_dsa::Sha2_192s>();
+    }
     #[test]
-    fn sk_serialization_sha2_256s() { sk_serialization::<slh_dsa::Sha2_256s>(); }
+    fn sk_serialization_sha2_256s() {
+        sk_serialization::<slh_dsa::Sha2_256s>();
+    }
     #[test]
-    fn sk_serialization_shake_128s() { sk_serialization::<slh_dsa::Shake128s>(); }
+    fn sk_serialization_shake_128s() {
+        sk_serialization::<slh_dsa::Shake128s>();
+    }
 
     #[test]
-    fn vk_serialization_sha2_128s() { vk_serialization::<slh_dsa::Sha2_128s>(); }
+    fn vk_serialization_sha2_128s() {
+        vk_serialization::<slh_dsa::Sha2_128s>();
+    }
     #[test]
-    fn vk_serialization_sha2_192s() { vk_serialization::<slh_dsa::Sha2_192s>(); }
+    fn vk_serialization_sha2_192s() {
+        vk_serialization::<slh_dsa::Sha2_192s>();
+    }
     #[test]
-    fn vk_serialization_sha2_256s() { vk_serialization::<slh_dsa::Sha2_256s>(); }
+    fn vk_serialization_sha2_256s() {
+        vk_serialization::<slh_dsa::Sha2_256s>();
+    }
     #[test]
-    fn vk_serialization_shake_128s() { vk_serialization::<slh_dsa::Shake128s>(); }
+    fn vk_serialization_shake_128s() {
+        vk_serialization::<slh_dsa::Shake128s>();
+    }
 
     // ── Wrong-key detection (SHAKE-128s as representative) ──────────────────
 

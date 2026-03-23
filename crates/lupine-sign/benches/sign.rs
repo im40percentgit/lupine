@@ -47,11 +47,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use ml_dsa::{KeyGen, MlDsaParams};
 use slh_dsa::ParameterSet;
 
-use lupine_sign::{
-    ml_dsa_generate_keypair,
-    hybrid_generate_keypair,
-    slh_dsa_generate_keypair,
-};
+use lupine_sign::{hybrid_generate_keypair, ml_dsa_generate_keypair, slh_dsa_generate_keypair};
 
 /// Message used for all sign/verify benchmarks — 64 bytes, representative of
 /// a typical digest or short payload.
@@ -63,9 +59,7 @@ fn bench_mldsa_keygen<P: KeyGen + MlDsaParams>(c: &mut Criterion, name: &str) {
     let mut rng = rand::rng();
     c.bench_function(name, |b| {
         b.iter(|| {
-            let _ = black_box(
-                ml_dsa_generate_keypair::<P>(&mut rng).expect("keygen failed"),
-            );
+            let _ = black_box(ml_dsa_generate_keypair::<P>(&mut rng).expect("keygen failed"));
         });
     });
 }
@@ -100,9 +94,8 @@ fn bench_hybrid_keygen<P: KeyGen + MlDsaParams>(c: &mut Criterion, name: &str) {
     let mut rng = rand::rng();
     c.bench_function(name, |b| {
         b.iter(|| {
-            let _ = black_box(
-                hybrid_generate_keypair::<P>(&mut rng).expect("hybrid keygen failed"),
-            );
+            let _ =
+                black_box(hybrid_generate_keypair::<P>(&mut rng).expect("hybrid keygen failed"));
         });
     });
 }
@@ -145,9 +138,8 @@ fn bench_slhdsa_keygen<P: ParameterSet>(c: &mut Criterion, name: &str) {
     let mut rng = rand::rng();
     c.bench_function(name, |b| {
         b.iter(|| {
-            let _ = black_box(
-                slh_dsa_generate_keypair::<P>(&mut rng).expect("slh-dsa keygen failed"),
-            );
+            let _ =
+                black_box(slh_dsa_generate_keypair::<P>(&mut rng).expect("slh-dsa keygen failed"));
         });
     });
 }

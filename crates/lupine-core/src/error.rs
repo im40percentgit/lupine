@@ -83,7 +83,10 @@ mod tests {
         assert_eq!(Error::Encapsulation.to_string(), "encapsulation failed");
         assert_eq!(Error::Decapsulation.to_string(), "decapsulation failed");
         assert_eq!(Error::Signing.to_string(), "signing failed");
-        assert_eq!(Error::Verification.to_string(), "signature verification failed");
+        assert_eq!(
+            Error::Verification.to_string(),
+            "signature verification failed"
+        );
         assert_eq!(Error::InvalidKey.to_string(), "invalid key");
         assert_eq!(Error::InvalidParameter.to_string(), "invalid parameter");
     }

@@ -1,0 +1,149 @@
+# CI workflow for Lupine — post-quantum cryptography library
+#
+# Jobs:
+#   test   — cargo test --workspace on stable + optional macos
+#   clippy — cargo clippy --workspace -- -D warnings
+#   fmt    — cargo fmt --check --all (formatting gate)
+#   msrv   — cargo test --workspace on Rust 1.75 (MSRV from workspace Cargo.toml)
+#   doc    — cargo doc --no-deps --workspace (verify docs build clean)
+#
+# @decision DEC-CI-001
+# @title GitHub Actions as CI platform
+# @status accepted
+# @rationale GitHub Actions is the natural choice for a GitHub-hosted repository.
+#   Zero-cost for public repos, native PR integration, and Rust toolchain support
+#   via dtolnay/rust-toolchain is first-class. No alternative was seriously
+#   considered for a public OSS library.
+#
+# @decision DEC-CI-002
+# @title Swatinem/rust-cache for build caching
+# @status accepted
+# @rationale Swatinem/rust-cache is the de facto standard for Rust GitHub Actions.
+#   It caches ~/.cargo/registry, ~/.cargo/git, and per-job target/ directories,
+#   keyed on Cargo.lock + OS + toolchain. Reduces CI time from ~5 min to ~1 min
+#   on cache hit. actions/cache requires manual key construction for Rust.
+
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # -------------------------------------------------------------------------
+  # test: cargo test --workspace on stable Rust
+  # Matrix: ubuntu-latest (primary) + macos-latest (optional cross-platform)
+  # -------------------------------------------------------------------------
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.os }}
+
+      - name: Run tests
+        run: cargo test --workspace
+
+  # -------------------------------------------------------------------------
+  # clippy: lint with -D warnings (all warnings are errors)
+  # -------------------------------------------------------------------------
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run Clippy
+        run: cargo clippy --workspace -- -D warnings
+
+  # -------------------------------------------------------------------------
+  # fmt: formatting gate — cargo fmt --check --all
+  # -------------------------------------------------------------------------
+  fmt:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Check formatting
+        run: cargo fmt --check --all
+
+  # -------------------------------------------------------------------------
+  # msrv: verify compilation + tests against MSRV (1.75, from workspace Cargo.toml)
+  #
+  # @decision DEC-CI-003
+  # @title MSRV job uses cargo test, not just cargo check
+  # @status accepted
+  # @rationale cargo check only verifies compilation. Tests catch MSRV-breaking
+  #   API usage (e.g., const fn stabilization gaps, trait method availability).
+  #   The test suite is fast enough (~30s on MSRV) that the extra signal is worth it.
+  # -------------------------------------------------------------------------
+  msrv:
+    name: MSRV (1.75)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust 1.75
+        uses: dtolnay/rust-toolchain@1.75
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: msrv-1.75
+
+      - name: Run tests on MSRV
+        run: cargo test --workspace
+
+  # -------------------------------------------------------------------------
+  # doc: verify rustdoc builds without errors
+  #
+  # RUSTDOCFLAGS=-D warnings treats broken intra-doc links and missing docs
+  # as errors, catching documentation regressions early.
+  # -------------------------------------------------------------------------
+  doc:
+    name: Docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build docs
+        env:
+          RUSTDOCFLAGS: "-D warnings"
+        run: cargo doc --no-deps --workspace

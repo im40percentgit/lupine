@@ -17,17 +17,14 @@ pub mod hybrid;
 pub mod mlkem;
 
 pub use mlkem::{
-    generate_keypair,
-    MlKemPublicKey, MlKemSecretKey, MlKemCiphertext, MlKemSharedKey,
-    MlKemPublicKey512, MlKemSecretKey512, MlKemCiphertext512,
-    MlKemPublicKey768, MlKemSecretKey768, MlKemCiphertext768,
-    MlKemPublicKey1024, MlKemSecretKey1024, MlKemCiphertext1024,
+    generate_keypair, MlKemCiphertext, MlKemCiphertext1024, MlKemCiphertext512, MlKemCiphertext768,
+    MlKemPublicKey, MlKemPublicKey1024, MlKemPublicKey512, MlKemPublicKey768, MlKemSecretKey,
+    MlKemSecretKey1024, MlKemSecretKey512, MlKemSecretKey768, MlKemSharedKey,
 };
 
 pub use hybrid::{
-    generate_keypair as hybrid_generate_keypair,
-    HybridKemPublicKey, HybridKemSecretKey, HybridKemCiphertext,
-    HybridKemPublicKey512, HybridKemSecretKey512, HybridKemCiphertext512,
-    HybridKemPublicKey768, HybridKemSecretKey768, HybridKemCiphertext768,
-    HybridKemPublicKey1024, HybridKemSecretKey1024, HybridKemCiphertext1024,
+    generate_keypair as hybrid_generate_keypair, HybridKemCiphertext, HybridKemCiphertext1024,
+    HybridKemCiphertext512, HybridKemCiphertext768, HybridKemPublicKey, HybridKemPublicKey1024,
+    HybridKemPublicKey512, HybridKemPublicKey768, HybridKemSecretKey, HybridKemSecretKey1024,
+    HybridKemSecretKey512, HybridKemSecretKey768,
 };

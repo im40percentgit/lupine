@@ -26,8 +26,7 @@ pub fn run(args: &DecapsulateArgs) -> Result<()> {
     let fmt = args.format;
 
     // Read secret key; may return embedded pk bytes for hybrid KEM DER/PEM.
-    let (sk_bytes, alg, embedded_pk) =
-        format::read_secret_key(&args.sec_key, fmt, args.algorithm)?;
+    let (sk_bytes, alg, embedded_pk) = format::read_secret_key(&args.sec_key, fmt, args.algorithm)?;
 
     if !alg.is_kem() {
         bail!("algorithm {alg} is not a KEM algorithm");
@@ -49,8 +48,7 @@ pub fn run(args: &DecapsulateArgs) -> Result<()> {
                          (the ML-KEM public key bytes are not stored in the raw secret key file)"
                     )
                 })?;
-                let (pk_bytes, _pk_alg) =
-                    format::read_public_key(pub_key_path, fmt, Some(alg))?;
+                let (pk_bytes, _pk_alg) = format::read_public_key(pub_key_path, fmt, Some(alg))?;
                 // pk_bytes = x25519_pk(32) || mlkem_pk; extract just mlkem_pk
                 let pk_size = alg.hybrid_kem_pk_size().unwrap();
                 if pk_bytes.len() != pk_size {
@@ -79,7 +77,8 @@ fn decapsulate_mlkem(
             let sk = MlKemSecretKey::<$P>::from_bytes($sk_bytes)
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?;
             let ct = MlKemCiphertext::<$P>::from_bytes($ct_bytes);
-            let ss = sk.decapsulate(&ct)
+            let ss = sk
+                .decapsulate(&ct)
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?;
             format::write_shared_secret($args.out_ss.as_deref(), ss.as_bytes())?;
             Ok(())
@@ -111,7 +110,8 @@ fn decapsulate_hybrid_kem(
             sk.set_mlkem_pk_bytes(mlkem_pk);
             let ct = HybridKemCiphertext::<$P>::from_bytes($ct_bytes)
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?;
-            let ss = sk.decapsulate(&ct)
+            let ss = sk
+                .decapsulate(&ct)
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?;
             format::write_shared_secret($args.out_ss.as_deref(), ss.as_bytes())?;
             Ok(())

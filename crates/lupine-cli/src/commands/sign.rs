@@ -49,8 +49,7 @@ fn sign_mldsa(
         ($P:ty, $alg:expr, $sk_bytes:expr, $message:expr, $args:expr) => {{
             let sk = MlDsaSigningKey::<$P>::from_bytes($sk_bytes)
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?;
-            let sig = sk.sign($message)
-                .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+            let sig = sk.sign($message).map_err(|e| anyhow::anyhow!("{:?}", e))?;
             let sig_bytes = sig.to_bytes().to_vec();
             if let Some(p) = $args.out_sig.as_deref() {
                 format::write_signature(p, &sig_bytes, $alg, $args.format)?;
@@ -78,8 +77,7 @@ fn sign_hybrid(
         ($P:ty, $alg:expr, $sk_bytes:expr, $message:expr, $args:expr) => {{
             let sk = HybridSigningKey::<$P>::from_bytes($sk_bytes)
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?;
-            let sig = sk.sign($message)
-                .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+            let sig = sk.sign($message).map_err(|e| anyhow::anyhow!("{:?}", e))?;
             let sig_bytes = sig.to_bytes();
             if let Some(p) = $args.out_sig.as_deref() {
                 format::write_signature(p, &sig_bytes, $alg, $args.format)?;
@@ -106,8 +104,7 @@ fn sign_slhdsa(
         ($P:ty, $alg:expr, $sk_bytes:expr, $message:expr, $args:expr) => {{
             let sk = SlhDsaSigningKey::<$P>::from_bytes($sk_bytes)
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?;
-            let sig = sk.sign($message)
-                .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+            let sig = sk.sign($message).map_err(|e| anyhow::anyhow!("{:?}", e))?;
             let sig_bytes = sig.to_bytes();
             if let Some(p) = $args.out_sig.as_deref() {
                 format::write_signature(p, &sig_bytes, $alg, $args.format)?;

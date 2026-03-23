@@ -33,8 +33,14 @@ pub fn run(args: &KeygenArgs) -> Result<()> {
 
     // Build output paths: explicit flags win, then prefix, then algorithm name.
     let prefix = args.output.clone().unwrap_or_else(|| alg.to_string());
-    let pub_path = args.out_pub.clone().unwrap_or_else(|| format!("{prefix}.pub"));
-    let sec_path = args.out_sec.clone().unwrap_or_else(|| format!("{prefix}.sec"));
+    let pub_path = args
+        .out_pub
+        .clone()
+        .unwrap_or_else(|| format!("{prefix}.pub"));
+    let sec_path = args
+        .out_sec
+        .clone()
+        .unwrap_or_else(|| format!("{prefix}.sec"));
 
     if alg.is_pure_kem() {
         keygen_mlkem(alg, fmt, &pub_path, &sec_path)
@@ -60,8 +66,8 @@ fn keygen_mlkem(alg: CliAlgorithm, fmt: Format, pub_path: &str, sec_path: &str) 
     macro_rules! do_mlkem_keygen {
         ($P:ty, $alg:expr, $fmt:expr, $pub_path:expr, $sec_path:expr) => {{
             let mut rng = OsRng;
-            let (sk, pk) = generate_keypair::<$P>(&mut rng)
-                .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+            let (sk, pk) =
+                generate_keypair::<$P>(&mut rng).map_err(|e| anyhow::anyhow!("{:?}", e))?;
             let pk_bytes = pk.to_bytes().to_vec();
             let sk_bytes = sk.to_bytes().to_vec();
             format::write_public_key($pub_path, &pk_bytes, $alg, $fmt)?;
@@ -84,8 +90,8 @@ fn keygen_hybrid_kem(alg: CliAlgorithm, fmt: Format, pub_path: &str, sec_path: &
     macro_rules! do_hybrid_kem_keygen {
         ($P:ty, $alg:expr, $fmt:expr, $pub_path:expr, $sec_path:expr) => {{
             let mut rng = OsRng;
-            let (sk, pk) = hybrid_generate_keypair::<$P>(&mut rng)
-                .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+            let (sk, pk) =
+                hybrid_generate_keypair::<$P>(&mut rng).map_err(|e| anyhow::anyhow!("{:?}", e))?;
             let pk_bytes = pk.to_bytes();
             let sk_bytes = sk.to_bytes();
             format::write_public_key($pub_path, &pk_bytes, $alg, $fmt)?;
@@ -106,8 +112,8 @@ fn keygen_mldsa(alg: CliAlgorithm, fmt: Format, pub_path: &str, sec_path: &str) 
     macro_rules! do_mldsa_keygen {
         ($P:ty, $alg:expr, $fmt:expr, $pub_path:expr, $sec_path:expr) => {{
             let mut rng = rand_010::rng();
-            let (sk, vk) = ml_dsa_generate_keypair::<$P>(&mut rng)
-                .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+            let (sk, vk) =
+                ml_dsa_generate_keypair::<$P>(&mut rng).map_err(|e| anyhow::anyhow!("{:?}", e))?;
             let vk_bytes = vk.to_bytes().to_vec();
             let sk_bytes = sk.to_bytes().to_vec();
             format::write_public_key($pub_path, &vk_bytes, $alg, $fmt)?;
@@ -123,7 +129,12 @@ fn keygen_mldsa(alg: CliAlgorithm, fmt: Format, pub_path: &str, sec_path: &str) 
     crate::dispatch_mldsa!(alg, do_mldsa_keygen!(alg, fmt, pub_path, sec_path))
 }
 
-fn keygen_hybrid_sign(alg: CliAlgorithm, fmt: Format, pub_path: &str, sec_path: &str) -> Result<()> {
+fn keygen_hybrid_sign(
+    alg: CliAlgorithm,
+    fmt: Format,
+    pub_path: &str,
+    sec_path: &str,
+) -> Result<()> {
     use lupine_sign::hybrid_generate_keypair as hybrid_sign_generate_keypair;
     macro_rules! do_hybrid_sign_keygen {
         ($P:ty, $alg:expr, $fmt:expr, $pub_path:expr, $sec_path:expr) => {{
@@ -150,8 +161,8 @@ fn keygen_slhdsa(alg: CliAlgorithm, fmt: Format, pub_path: &str, sec_path: &str)
     macro_rules! do_slhdsa_keygen {
         ($P:ty, $alg:expr, $fmt:expr, $pub_path:expr, $sec_path:expr) => {{
             let mut rng = rand_010::rng();
-            let (sk, vk) = slh_dsa_generate_keypair::<$P>(&mut rng)
-                .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+            let (sk, vk) =
+                slh_dsa_generate_keypair::<$P>(&mut rng).map_err(|e| anyhow::anyhow!("{:?}", e))?;
             let vk_bytes = vk.to_bytes();
             let sk_bytes = sk.to_bytes();
             format::write_public_key($pub_path, &vk_bytes, $alg, $fmt)?;

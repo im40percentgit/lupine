@@ -51,18 +51,17 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use ed25519_dalek::{
-    Signature as Ed25519Signature,
-    SigningKey as Ed25519SigningKey,
+    Signature as Ed25519Signature, Signer as _, SigningKey as Ed25519SigningKey, Verifier as _,
     VerifyingKey as Ed25519VerifyingKey,
-    Signer as _,
-    Verifier as _,
 };
 use ml_dsa::{KeyGen, MlDsaParams};
 use rand_core::CryptoRng;
 
 use lupine_core::{Error, Result};
 
-use crate::mldsa::{MlDsaSignature, MlDsaSigningKey, MlDsaVerifyingKey, generate_keypair as mldsa_keygen};
+use crate::mldsa::{
+    generate_keypair as mldsa_keygen, MlDsaSignature, MlDsaSigningKey, MlDsaVerifyingKey,
+};
 
 // ── Type aliases ─────────────────────────────────────────────────────────────
 
@@ -251,8 +250,7 @@ impl<P: MlDsaParams> HybridVerifyingKey<P> {
             return Err(Error::InvalidKey);
         }
         let ed_bytes: [u8; 32] = bytes[..32].try_into().map_err(|_| Error::InvalidKey)?;
-        let ed_pk = Ed25519VerifyingKey::from_bytes(&ed_bytes)
-            .map_err(|_| Error::InvalidKey)?;
+        let ed_pk = Ed25519VerifyingKey::from_bytes(&ed_bytes).map_err(|_| Error::InvalidKey)?;
         let mldsa_vk = MlDsaVerifyingKey::<P>::from_bytes(&bytes[32..])?;
         Ok(Self { ed_pk, mldsa_vk })
     }
@@ -299,15 +297,13 @@ impl<P: MlDsaParams> HybridSignature<P> {
             return Err(Error::Verification);
         }
         // Read Ed25519 length prefix.
-        let ed_len = u32::from_le_bytes(
-            bytes[..4].try_into().map_err(|_| Error::Verification)?
-        ) as usize;
+        let ed_len =
+            u32::from_le_bytes(bytes[..4].try_into().map_err(|_| Error::Verification)?) as usize;
         if bytes.len() < 4 + ed_len + 4 {
             return Err(Error::Verification);
         }
         let ed_sig_bytes = &bytes[4..4 + ed_len];
-        let ed_sig = Ed25519Signature::from_slice(ed_sig_bytes)
-            .map_err(|_| Error::Verification)?;
+        let ed_sig = Ed25519Signature::from_slice(ed_sig_bytes).map_err(|_| Error::Verification)?;
 
         // Read ML-DSA length prefix.
         let mldsa_start = 4 + ed_len;
@@ -320,7 +316,8 @@ impl<P: MlDsaParams> HybridSignature<P> {
         if bytes.len() < mldsa_sig_start + mldsa_len {
             return Err(Error::Verification);
         }
-        let mldsa_sig = MlDsaSignature::<P>::from_bytes(&bytes[mldsa_sig_start..mldsa_sig_start + mldsa_len])?;
+        let mldsa_sig =
+            MlDsaSignature::<P>::from_bytes(&bytes[mldsa_sig_start..mldsa_sig_start + mldsa_len])?;
 
         Ok(Self { ed_sig, mldsa_sig })
     }
@@ -370,11 +367,17 @@ mod tests {
     // running ML-DSA operations exhaust the default stack even for _44 and _65
     // when combined with the Ed25519 overhead.
     #[test]
-    fn roundtrip_44() { with_large_stack(|| roundtrip::<ml_dsa::MlDsa44>()); }
+    fn roundtrip_44() {
+        with_large_stack(|| roundtrip::<ml_dsa::MlDsa44>());
+    }
     #[test]
-    fn roundtrip_65() { with_large_stack(|| roundtrip::<ml_dsa::MlDsa65>()); }
+    fn roundtrip_65() {
+        with_large_stack(|| roundtrip::<ml_dsa::MlDsa65>());
+    }
     #[test]
-    fn roundtrip_87() { with_large_stack(|| roundtrip::<ml_dsa::MlDsa87>()); }
+    fn roundtrip_87() {
+        with_large_stack(|| roundtrip::<ml_dsa::MlDsa87>());
+    }
 
     // ── AND-verify: corrupt Ed25519 part only → fail ─────────────────────────
 
@@ -396,11 +399,17 @@ mod tests {
     }
 
     #[test]
-    fn and_verify_ed25519_corrupt_44() { with_large_stack(|| and_verify_ed25519_corrupt::<ml_dsa::MlDsa44>()); }
+    fn and_verify_ed25519_corrupt_44() {
+        with_large_stack(|| and_verify_ed25519_corrupt::<ml_dsa::MlDsa44>());
+    }
     #[test]
-    fn and_verify_ed25519_corrupt_65() { with_large_stack(|| and_verify_ed25519_corrupt::<ml_dsa::MlDsa65>()); }
+    fn and_verify_ed25519_corrupt_65() {
+        with_large_stack(|| and_verify_ed25519_corrupt::<ml_dsa::MlDsa65>());
+    }
     #[test]
-    fn and_verify_ed25519_corrupt_87() { with_large_stack(|| and_verify_ed25519_corrupt::<ml_dsa::MlDsa87>()); }
+    fn and_verify_ed25519_corrupt_87() {
+        with_large_stack(|| and_verify_ed25519_corrupt::<ml_dsa::MlDsa87>());
+    }
 
     // ── AND-verify: corrupt ML-DSA part only → fail ───────────────────────────
 
@@ -427,11 +436,17 @@ mod tests {
     }
 
     #[test]
-    fn and_verify_mldsa_corrupt_44() { with_large_stack(|| and_verify_mldsa_corrupt::<ml_dsa::MlDsa44>()); }
+    fn and_verify_mldsa_corrupt_44() {
+        with_large_stack(|| and_verify_mldsa_corrupt::<ml_dsa::MlDsa44>());
+    }
     #[test]
-    fn and_verify_mldsa_corrupt_65() { with_large_stack(|| and_verify_mldsa_corrupt::<ml_dsa::MlDsa65>()); }
+    fn and_verify_mldsa_corrupt_65() {
+        with_large_stack(|| and_verify_mldsa_corrupt::<ml_dsa::MlDsa65>());
+    }
     #[test]
-    fn and_verify_mldsa_corrupt_87() { with_large_stack(|| and_verify_mldsa_corrupt::<ml_dsa::MlDsa87>()); }
+    fn and_verify_mldsa_corrupt_87() {
+        with_large_stack(|| and_verify_mldsa_corrupt::<ml_dsa::MlDsa87>());
+    }
 
     // ── Wrong key detection ───────────────────────────────────────────────────
 
@@ -448,11 +463,17 @@ mod tests {
     }
 
     #[test]
-    fn wrong_key_44() { with_large_stack(|| wrong_key::<ml_dsa::MlDsa44>()); }
+    fn wrong_key_44() {
+        with_large_stack(|| wrong_key::<ml_dsa::MlDsa44>());
+    }
     #[test]
-    fn wrong_key_65() { with_large_stack(|| wrong_key::<ml_dsa::MlDsa65>()); }
+    fn wrong_key_65() {
+        with_large_stack(|| wrong_key::<ml_dsa::MlDsa65>());
+    }
     #[test]
-    fn wrong_key_87() { with_large_stack(|| wrong_key::<ml_dsa::MlDsa87>()); }
+    fn wrong_key_87() {
+        with_large_stack(|| wrong_key::<ml_dsa::MlDsa87>());
+    }
 
     // ── Signature serialization round-trip ────────────────────────────────────
 
@@ -462,20 +483,30 @@ mod tests {
         let msg = b"sig serialization round-trip";
         let sig = sk.sign(msg).expect("sign failed");
         let sig_bytes = sig.to_bytes();
-        let sig2 = HybridSignature::<P>::from_bytes(&sig_bytes)
-            .expect("sig from_bytes failed");
+        let sig2 = HybridSignature::<P>::from_bytes(&sig_bytes).expect("sig from_bytes failed");
         // Verify the round-tripped signature.
-        vk.verify(msg, &sig2).expect("round-tripped sig must verify");
+        vk.verify(msg, &sig2)
+            .expect("round-tripped sig must verify");
         // Byte equality.
-        assert_eq!(sig.to_bytes(), sig2.to_bytes(), "sig bytes round-trip failed");
+        assert_eq!(
+            sig.to_bytes(),
+            sig2.to_bytes(),
+            "sig bytes round-trip failed"
+        );
     }
 
     #[test]
-    fn sig_serialization_44() { with_large_stack(|| sig_serialization::<ml_dsa::MlDsa44>()); }
+    fn sig_serialization_44() {
+        with_large_stack(|| sig_serialization::<ml_dsa::MlDsa44>());
+    }
     #[test]
-    fn sig_serialization_65() { with_large_stack(|| sig_serialization::<ml_dsa::MlDsa65>()); }
+    fn sig_serialization_65() {
+        with_large_stack(|| sig_serialization::<ml_dsa::MlDsa65>());
+    }
     #[test]
-    fn sig_serialization_87() { with_large_stack(|| sig_serialization::<ml_dsa::MlDsa87>()); }
+    fn sig_serialization_87() {
+        with_large_stack(|| sig_serialization::<ml_dsa::MlDsa87>());
+    }
 
     // ── Verifying key serialization round-trip ────────────────────────────────
 
@@ -483,8 +514,7 @@ mod tests {
         let mut rng = make_rng();
         let (sk, vk) = generate_keypair::<P>(&mut rng).expect("keygen failed");
         let vk_bytes = vk.to_bytes();
-        let vk2 = HybridVerifyingKey::<P>::from_bytes(&vk_bytes)
-            .expect("vk from_bytes failed");
+        let vk2 = HybridVerifyingKey::<P>::from_bytes(&vk_bytes).expect("vk from_bytes failed");
         assert_eq!(vk.to_bytes(), vk2.to_bytes(), "vk bytes round-trip failed");
         // Sign with sk, verify with deserialized vk.
         let msg = b"vk round-trip sign+verify";
@@ -493,11 +523,17 @@ mod tests {
     }
 
     #[test]
-    fn vk_serialization_44() { with_large_stack(|| vk_serialization::<ml_dsa::MlDsa44>()); }
+    fn vk_serialization_44() {
+        with_large_stack(|| vk_serialization::<ml_dsa::MlDsa44>());
+    }
     #[test]
-    fn vk_serialization_65() { with_large_stack(|| vk_serialization::<ml_dsa::MlDsa65>()); }
+    fn vk_serialization_65() {
+        with_large_stack(|| vk_serialization::<ml_dsa::MlDsa65>());
+    }
     #[test]
-    fn vk_serialization_87() { with_large_stack(|| vk_serialization::<ml_dsa::MlDsa87>()); }
+    fn vk_serialization_87() {
+        with_large_stack(|| vk_serialization::<ml_dsa::MlDsa87>());
+    }
 
     // ── Signing key serialization round-trip ──────────────────────────────────
 
@@ -505,20 +541,30 @@ mod tests {
         let mut rng = make_rng();
         let (sk, vk) = generate_keypair::<P>(&mut rng).expect("keygen failed");
         let sk_bytes = sk.to_bytes();
-        let sk2 = HybridSigningKey::<P>::from_bytes(&sk_bytes)
-            .expect("sk from_bytes failed");
+        let sk2 = HybridSigningKey::<P>::from_bytes(&sk_bytes).expect("sk from_bytes failed");
         // Both keys must produce identical signatures (both are deterministic).
         let msg = b"sk round-trip determinism";
         let sig1 = sk.sign(msg).expect("sign failed");
         let sig2 = sk2.sign(msg).expect("sign with deserialized sk failed");
-        assert_eq!(sig1.to_bytes(), sig2.to_bytes(), "deserialized sk must produce identical sig");
-        vk.verify(msg, &sig2).expect("deserialized sk sig must verify");
+        assert_eq!(
+            sig1.to_bytes(),
+            sig2.to_bytes(),
+            "deserialized sk must produce identical sig"
+        );
+        vk.verify(msg, &sig2)
+            .expect("deserialized sk sig must verify");
     }
 
     #[test]
-    fn sk_serialization_44() { with_large_stack(|| sk_serialization::<ml_dsa::MlDsa44>()); }
+    fn sk_serialization_44() {
+        with_large_stack(|| sk_serialization::<ml_dsa::MlDsa44>());
+    }
     #[test]
-    fn sk_serialization_65() { with_large_stack(|| sk_serialization::<ml_dsa::MlDsa65>()); }
+    fn sk_serialization_65() {
+        with_large_stack(|| sk_serialization::<ml_dsa::MlDsa65>());
+    }
     #[test]
-    fn sk_serialization_87() { with_large_stack(|| sk_serialization::<ml_dsa::MlDsa87>()); }
+    fn sk_serialization_87() {
+        with_large_stack(|| sk_serialization::<ml_dsa::MlDsa87>());
+    }
 }

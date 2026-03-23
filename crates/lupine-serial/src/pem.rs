@@ -71,8 +71,8 @@ pub fn encode_pem(label: &str, der_bytes: &[u8]) -> Result<String> {
 /// # Errors
 /// Returns [`Error::Serialization`] if the input is not valid RFC 7468 PEM.
 pub fn decode_pem(pem_str: &str) -> Result<(String, alloc::vec::Vec<u8>)> {
-    let (label, doc) = pem_rfc7468::decode_vec(pem_str.as_bytes())
-        .map_err(|_| ser_err("PEM decoding failed"))?;
+    let (label, doc) =
+        pem_rfc7468::decode_vec(pem_str.as_bytes()).map_err(|_| ser_err("PEM decoding failed"))?;
     Ok((label.to_owned(), doc))
 }
 

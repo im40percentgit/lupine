@@ -90,9 +90,15 @@ impl SignAlgorithm {
             SignAlgorithm::SlhDsaSha2192s | SignAlgorithm::SlhDsaSha2192f => SecurityLevel::Level3,
             SignAlgorithm::SlhDsaSha2256s | SignAlgorithm::SlhDsaSha2256f => SecurityLevel::Level5,
 
-            SignAlgorithm::SlhDsaShake128s | SignAlgorithm::SlhDsaShake128f => SecurityLevel::Level1,
-            SignAlgorithm::SlhDsaShake192s | SignAlgorithm::SlhDsaShake192f => SecurityLevel::Level3,
-            SignAlgorithm::SlhDsaShake256s | SignAlgorithm::SlhDsaShake256f => SecurityLevel::Level5,
+            SignAlgorithm::SlhDsaShake128s | SignAlgorithm::SlhDsaShake128f => {
+                SecurityLevel::Level1
+            }
+            SignAlgorithm::SlhDsaShake192s | SignAlgorithm::SlhDsaShake192f => {
+                SecurityLevel::Level3
+            }
+            SignAlgorithm::SlhDsaShake256s | SignAlgorithm::SlhDsaShake256f => {
+                SecurityLevel::Level5
+            }
         }
     }
 }
@@ -103,22 +109,49 @@ mod tests {
 
     #[test]
     fn kem_security_levels() {
-        assert_eq!(KemAlgorithm::MlKem512.security_level(), SecurityLevel::Level1);
-        assert_eq!(KemAlgorithm::MlKem768.security_level(), SecurityLevel::Level3);
-        assert_eq!(KemAlgorithm::MlKem1024.security_level(), SecurityLevel::Level5);
+        assert_eq!(
+            KemAlgorithm::MlKem512.security_level(),
+            SecurityLevel::Level1
+        );
+        assert_eq!(
+            KemAlgorithm::MlKem768.security_level(),
+            SecurityLevel::Level3
+        );
+        assert_eq!(
+            KemAlgorithm::MlKem1024.security_level(),
+            SecurityLevel::Level5
+        );
     }
 
     #[test]
     fn mldsa_security_levels() {
-        assert_eq!(SignAlgorithm::MlDsa44.security_level(), SecurityLevel::Level2);
-        assert_eq!(SignAlgorithm::MlDsa65.security_level(), SecurityLevel::Level3);
-        assert_eq!(SignAlgorithm::MlDsa87.security_level(), SecurityLevel::Level5);
+        assert_eq!(
+            SignAlgorithm::MlDsa44.security_level(),
+            SecurityLevel::Level2
+        );
+        assert_eq!(
+            SignAlgorithm::MlDsa65.security_level(),
+            SecurityLevel::Level3
+        );
+        assert_eq!(
+            SignAlgorithm::MlDsa87.security_level(),
+            SecurityLevel::Level5
+        );
     }
 
     #[test]
     fn slhdsa_security_levels() {
-        assert_eq!(SignAlgorithm::SlhDsaSha2128s.security_level(), SecurityLevel::Level1);
-        assert_eq!(SignAlgorithm::SlhDsaSha2192f.security_level(), SecurityLevel::Level3);
-        assert_eq!(SignAlgorithm::SlhDsaShake256s.security_level(), SecurityLevel::Level5);
+        assert_eq!(
+            SignAlgorithm::SlhDsaSha2128s.security_level(),
+            SecurityLevel::Level1
+        );
+        assert_eq!(
+            SignAlgorithm::SlhDsaSha2192f.security_level(),
+            SecurityLevel::Level3
+        );
+        assert_eq!(
+            SignAlgorithm::SlhDsaShake256s.security_level(),
+            SecurityLevel::Level5
+        );
     }
 }

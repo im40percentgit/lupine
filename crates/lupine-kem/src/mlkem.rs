@@ -31,8 +31,8 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use ml_kem::{
-    Encoded, EncodedSizeUser, KemCore,
     kem::{Decapsulate, Encapsulate},
+    Encoded, EncodedSizeUser, KemCore,
 };
 use rand_core::CryptoRngCore;
 use zeroize::Zeroize;
@@ -79,7 +79,9 @@ pub type MlKemSharedKey = SharedSecret;
 ///
 /// Returns [`Error::KeyGeneration`] if the RNG fails to produce entropy
 /// (in practice this only happens on platforms without a system RNG).
-pub fn generate_keypair<P>(rng: &mut impl CryptoRngCore) -> Result<(MlKemSecretKey<P>, MlKemPublicKey<P>)>
+pub fn generate_keypair<P>(
+    rng: &mut impl CryptoRngCore,
+) -> Result<(MlKemSecretKey<P>, MlKemPublicKey<P>)>
 where
     P: KemCore,
     P::DecapsulationKey: EncodedSizeUser,
@@ -126,8 +128,8 @@ where
     /// Returns [`Error::InvalidKey`] if the byte slice is not the correct
     /// length for this parameter set.
     pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let encoded = Encoded::<P::EncapsulationKey>::try_from(bytes)
-            .map_err(|_| Error::InvalidKey)?;
+        let encoded =
+            Encoded::<P::EncapsulationKey>::try_from(bytes).map_err(|_| Error::InvalidKey)?;
         let native = P::EncapsulationKey::from_bytes(&encoded);
         Ok(Self {
             bytes: bytes.to_vec(),
@@ -223,8 +225,8 @@ where
     /// Returns [`Error::InvalidKey`] if the byte slice is not the correct
     /// length for this parameter set.
     pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let encoded = Encoded::<P::DecapsulationKey>::try_from(bytes)
-            .map_err(|_| Error::InvalidKey)?;
+        let encoded =
+            Encoded::<P::DecapsulationKey>::try_from(bytes).map_err(|_| Error::InvalidKey)?;
         let native = P::DecapsulationKey::from_bytes(&encoded);
         Ok(Self {
             bytes: bytes.to_vec(),
@@ -265,13 +267,9 @@ where
     ///
     /// Returns [`Error::Decapsulation`] only on internal failure (should not
     /// happen under normal operation with well-formed keys).
-    pub fn decapsulate(
-        &self,
-        ct: &MlKemCiphertext<P>,
-    ) -> Result<MlKemSharedKey>
+    pub fn decapsulate(&self, ct: &MlKemCiphertext<P>) -> Result<MlKemSharedKey>
     where
-        P::DecapsulationKey:
-            Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+        P::DecapsulationKey: Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     {
         let ct_arr = ct.to_array()?;
         let sk_arr = self
@@ -308,8 +306,7 @@ impl<P: KemCore> MlKemCiphertext<P> {
     where
         ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
     {
-        ml_kem::Ciphertext::<P>::try_from(self.bytes.as_slice())
-            .map_err(|_| Error::Decapsulation)
+        ml_kem::Ciphertext::<P>::try_from(self.bytes.as_slice()).map_err(|_| Error::Decapsulation)
     }
 
     /// Deserialize a ciphertext from raw bytes.
@@ -342,10 +339,9 @@ mod tests {
     where
         P: KemCore,
         P::DecapsulationKey: EncodedSizeUser,
-        P::EncapsulationKey: EncodedSizeUser
-            + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
-        P::DecapsulationKey:
-            Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+        P::EncapsulationKey:
+            EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+        P::DecapsulationKey: Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
         ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
     {
         let (sk, pk) = generate_keypair::<P>(&mut OsRng).expect("keygen failed");
@@ -387,12 +383,20 @@ mod tests {
         // Public key round-trip (compare bytes, since P may not impl Debug/PartialEq)
         let pk_bytes = pk.to_bytes().to_vec();
         let pk2 = MlKemPublicKey::<P>::from_bytes(&pk_bytes).expect("pk from_bytes failed");
-        assert_eq!(pk.to_bytes(), pk2.to_bytes(), "public key round-trip failed");
+        assert_eq!(
+            pk.to_bytes(),
+            pk2.to_bytes(),
+            "public key round-trip failed"
+        );
 
         // Secret key round-trip
         let sk_bytes = sk.to_bytes().to_vec();
         let sk2 = MlKemSecretKey::<P>::from_bytes(&sk_bytes).expect("sk from_bytes failed");
-        assert_eq!(sk.to_bytes(), sk2.to_bytes(), "secret key round-trip failed");
+        assert_eq!(
+            sk.to_bytes(),
+            sk2.to_bytes(),
+            "secret key round-trip failed"
+        );
     }
 
     #[test]
@@ -416,10 +420,9 @@ mod tests {
     where
         P: KemCore,
         P::DecapsulationKey: EncodedSizeUser,
-        P::EncapsulationKey: EncodedSizeUser
-            + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
-        P::DecapsulationKey:
-            Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+        P::EncapsulationKey:
+            EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+        P::DecapsulationKey: Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
         ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
     {
         let (sk, pk) = generate_keypair::<P>(&mut OsRng).expect("keygen failed");
@@ -460,7 +463,9 @@ mod tests {
     #[test]
     fn public_key_derivation_768() {
         let (sk, pk) = generate_keypair::<ml_kem::MlKem768>(&mut OsRng).expect("keygen failed");
-        let pk_cached = sk.public_key().expect("public key must be cached after keygen");
+        let pk_cached = sk
+            .public_key()
+            .expect("public key must be cached after keygen");
         assert_eq!(
             pk.to_bytes(),
             pk_cached.to_bytes(),

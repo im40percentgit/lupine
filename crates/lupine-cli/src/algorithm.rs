@@ -356,7 +356,11 @@ mod tests {
     fn display_roundtrip_all() {
         for name in CliAlgorithm::all_names() {
             let alg: CliAlgorithm = name.parse().expect("parse failed");
-            assert_eq!(alg.to_string(), *name, "display roundtrip failed for {name}");
+            assert_eq!(
+                alg.to_string(),
+                *name,
+                "display roundtrip failed for {name}"
+            );
         }
     }
 
@@ -396,15 +400,24 @@ mod tests {
 
     #[test]
     fn to_kem_algorithm_mapping() {
-        assert_eq!(CliAlgorithm::MlKem768.to_kem_algorithm(), Some(KemAlgorithm::MlKem768));
+        assert_eq!(
+            CliAlgorithm::MlKem768.to_kem_algorithm(),
+            Some(KemAlgorithm::MlKem768)
+        );
         assert_eq!(CliAlgorithm::X25519MlKem768.to_kem_algorithm(), None);
         assert_eq!(CliAlgorithm::MlDsa65.to_kem_algorithm(), None);
     }
 
     #[test]
     fn to_sign_algorithm_mapping() {
-        assert_eq!(CliAlgorithm::MlDsa44.to_sign_algorithm(), Some(SignAlgorithm::MlDsa44));
-        assert_eq!(CliAlgorithm::SlhDsaSha2128f.to_sign_algorithm(), Some(SignAlgorithm::SlhDsaSha2128f));
+        assert_eq!(
+            CliAlgorithm::MlDsa44.to_sign_algorithm(),
+            Some(SignAlgorithm::MlDsa44)
+        );
+        assert_eq!(
+            CliAlgorithm::SlhDsaSha2128f.to_sign_algorithm(),
+            Some(SignAlgorithm::SlhDsaSha2128f)
+        );
         assert_eq!(CliAlgorithm::Ed25519MlDsa44.to_sign_algorithm(), None);
         assert_eq!(CliAlgorithm::MlKem512.to_sign_algorithm(), None);
     }
@@ -412,8 +425,14 @@ mod tests {
     #[test]
     fn hybrid_kem_pk_sizes() {
         assert_eq!(CliAlgorithm::X25519MlKem512.hybrid_kem_pk_size(), Some(832));
-        assert_eq!(CliAlgorithm::X25519MlKem768.hybrid_kem_pk_size(), Some(1216));
-        assert_eq!(CliAlgorithm::X25519MlKem1024.hybrid_kem_pk_size(), Some(1600));
+        assert_eq!(
+            CliAlgorithm::X25519MlKem768.hybrid_kem_pk_size(),
+            Some(1216)
+        );
+        assert_eq!(
+            CliAlgorithm::X25519MlKem1024.hybrid_kem_pk_size(),
+            Some(1600)
+        );
         assert_eq!(CliAlgorithm::MlKem768.hybrid_kem_pk_size(), None);
     }
 

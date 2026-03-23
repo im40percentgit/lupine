@@ -72,11 +72,9 @@ pub fn write_public_key(
         Format::Pem => {
             let der_bytes = encode_public_key_der(raw_bytes, alg)?;
             let pem_str = if alg.is_hybrid_kem() || alg.is_hybrid_sign() {
-                pem::encode_pem("PUBLIC KEY", &der_bytes)
-                    .map_err(|e| anyhow::anyhow!("{:?}", e))?
+                pem::encode_pem("PUBLIC KEY", &der_bytes).map_err(|e| anyhow::anyhow!("{:?}", e))?
             } else {
-                pem::encode_public_key_pem(&der_bytes)
-                    .map_err(|e| anyhow::anyhow!("{:?}", e))?
+                pem::encode_public_key_pem(&der_bytes).map_err(|e| anyhow::anyhow!("{:?}", e))?
             };
             fs::write(path, pem_str.as_bytes())
                 .with_context(|| format!("failed to write PEM public key to {path}"))?;
@@ -95,8 +93,8 @@ pub fn read_public_key(
     format: Format,
     alg_hint: Option<CliAlgorithm>,
 ) -> Result<(Vec<u8>, CliAlgorithm)> {
-    let file_bytes = fs::read(path)
-        .with_context(|| format!("failed to read public key from {path}"))?;
+    let file_bytes =
+        fs::read(path).with_context(|| format!("failed to read public key from {path}"))?;
 
     match format {
         Format::Raw => {
@@ -152,8 +150,8 @@ pub fn write_secret_key(
         }
         Format::Pem => {
             let der_bytes = encode_secret_key_der(raw_bytes, alg, pk_bytes)?;
-            let pem_str = pem::encode_private_key_pem(&der_bytes)
-                .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+            let pem_str =
+                pem::encode_private_key_pem(&der_bytes).map_err(|e| anyhow::anyhow!("{:?}", e))?;
             fs::write(path, pem_str.as_bytes())
                 .with_context(|| format!("failed to write PEM secret key to {path}"))?;
         }
@@ -171,8 +169,8 @@ pub fn read_secret_key(
     format: Format,
     alg_hint: Option<CliAlgorithm>,
 ) -> Result<(Vec<u8>, CliAlgorithm, Option<Vec<u8>>)> {
-    let file_bytes = fs::read(path)
-        .with_context(|| format!("failed to read secret key from {path}"))?;
+    let file_bytes =
+        fs::read(path).with_context(|| format!("failed to read secret key from {path}"))?;
 
     match format {
         Format::Raw => {
@@ -202,8 +200,7 @@ pub fn read_secret_key(
 
 /// Write raw ciphertext bytes to `path`.
 pub fn write_ciphertext(path: &str, bytes: &[u8]) -> Result<()> {
-    fs::write(path, bytes)
-        .with_context(|| format!("failed to write ciphertext to {path}"))
+    fs::write(path, bytes).with_context(|| format!("failed to write ciphertext to {path}"))
 }
 
 /// Read raw ciphertext bytes from `path`.
@@ -234,8 +231,8 @@ pub fn write_signature(
         }
         Format::Pem => {
             let der_bytes = encode_signature_der(sig_bytes, alg)?;
-            let pem_str = pem::encode_signature_pem(&der_bytes)
-                .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+            let pem_str =
+                pem::encode_signature_pem(&der_bytes).map_err(|e| anyhow::anyhow!("{:?}", e))?;
             fs::write(path, pem_str.as_bytes())
                 .with_context(|| format!("failed to write PEM signature to {path}"))?;
         }
@@ -251,8 +248,8 @@ pub fn read_signature(
     format: Format,
     alg_hint: Option<CliAlgorithm>,
 ) -> Result<(Vec<u8>, CliAlgorithm)> {
-    let file_bytes = fs::read(path)
-        .with_context(|| format!("failed to read signature from {path}"))?;
+    let file_bytes =
+        fs::read(path).with_context(|| format!("failed to read signature from {path}"))?;
 
     match format {
         Format::Raw => {
@@ -314,12 +311,10 @@ pub fn write_shared_secret(path: Option<&str>, ss_bytes: &[u8]) -> Result<()> {
 fn encode_public_key_der(raw_bytes: &[u8], alg: CliAlgorithm) -> Result<Vec<u8>> {
     if let Some(kem_alg) = alg.to_kem_algorithm() {
         // Pure ML-KEM
-        der::encode_kem_public_key_der(kem_alg, raw_bytes)
-            .map_err(|e| anyhow::anyhow!("{:?}", e))
+        der::encode_kem_public_key_der(kem_alg, raw_bytes).map_err(|e| anyhow::anyhow!("{:?}", e))
     } else if let Some(sign_alg) = alg.to_sign_algorithm() {
         // Pure sign (ML-DSA or SLH-DSA)
-        der::encode_sign_public_key_der(sign_alg, raw_bytes)
-            .map_err(|e| anyhow::anyhow!("{:?}", e))
+        der::encode_sign_public_key_der(sign_alg, raw_bytes).map_err(|e| anyhow::anyhow!("{:?}", e))
     } else if let Some(kem_variant) = alg.to_composite_kem_variant() {
         // Hybrid KEM: split x25519_pk(32) || mlkem_pk
         if raw_bytes.len() < 32 {
@@ -332,7 +327,10 @@ fn encode_public_key_der(raw_bytes: &[u8], alg: CliAlgorithm) -> Result<Vec<u8>>
     } else if let Some(sign_variant) = alg.to_composite_sign_variant() {
         // Hybrid sign: split ed_vk(32) || mldsa_vk
         if raw_bytes.len() < 32 {
-            bail!("hybrid sign public key too short: {} bytes", raw_bytes.len());
+            bail!(
+                "hybrid sign public key too short: {} bytes",
+                raw_bytes.len()
+            );
         }
         let classical = &raw_bytes[..32];
         let pqc = &raw_bytes[32..];
@@ -373,12 +371,10 @@ fn encode_secret_key_der(
 ) -> Result<Vec<u8>> {
     if let Some(kem_alg) = alg.to_kem_algorithm() {
         // Pure ML-KEM
-        der::encode_kem_secret_key_der(kem_alg, raw_bytes)
-            .map_err(|e| anyhow::anyhow!("{:?}", e))
+        der::encode_kem_secret_key_der(kem_alg, raw_bytes).map_err(|e| anyhow::anyhow!("{:?}", e))
     } else if let Some(sign_alg) = alg.to_sign_algorithm() {
         // Pure sign
-        der::encode_sign_secret_key_der(sign_alg, raw_bytes)
-            .map_err(|e| anyhow::anyhow!("{:?}", e))
+        der::encode_sign_secret_key_der(sign_alg, raw_bytes).map_err(|e| anyhow::anyhow!("{:?}", e))
     } else if let Some(kem_variant) = alg.to_composite_kem_variant() {
         // Hybrid KEM secret key.
         // raw_bytes = x25519_sk(32) || x25519_pk(32) || mlkem_sk
@@ -409,10 +405,13 @@ fn encode_secret_key_der(
         // Hybrid sign secret key.
         // raw_bytes = ed_seed(32) || mldsa_seed(32) (64 bytes total)
         if raw_bytes.len() < 64 {
-            bail!("hybrid sign secret key too short: {} bytes", raw_bytes.len());
+            bail!(
+                "hybrid sign secret key too short: {} bytes",
+                raw_bytes.len()
+            );
         }
         let classical = &raw_bytes[..32]; // ed_seed
-        let pqc = &raw_bytes[32..];       // mldsa_seed (32 bytes)
+        let pqc = &raw_bytes[32..]; // mldsa_seed (32 bytes)
         composite::encode_composite_sign_key(sign_variant, classical, pqc)
             .map_err(|e| anyhow::anyhow!("{:?}", e))
     } else {
@@ -436,7 +435,10 @@ fn decode_secret_key_der(der_bytes: &[u8]) -> Result<(Vec<u8>, CliAlgorithm, Opt
         // pqc = mlkem_pk || mlkem_sk
         // Reconstruct raw_bytes = x25519_sk(32) || x25519_pk(32) || mlkem_sk
         if classical.len() < 64 {
-            bail!("composite KEM classical field too short in DER: {} bytes", classical.len());
+            bail!(
+                "composite KEM classical field too short in DER: {} bytes",
+                classical.len()
+            );
         }
         let pk_size = cli_alg
             .hybrid_kem_pk_size()
@@ -480,8 +482,7 @@ fn decode_secret_key_der(der_bytes: &[u8]) -> Result<(Vec<u8>, CliAlgorithm, Opt
 
 fn encode_signature_der(sig_bytes: &[u8], alg: CliAlgorithm) -> Result<Vec<u8>> {
     if let Some(sign_alg) = alg.to_sign_algorithm() {
-        der::encode_signature_der(sign_alg, sig_bytes)
-            .map_err(|e| anyhow::anyhow!("{:?}", e))
+        der::encode_signature_der(sign_alg, sig_bytes).map_err(|e| anyhow::anyhow!("{:?}", e))
     } else if let Some(sign_variant) = alg.to_composite_sign_variant() {
         // Hybrid signature: sig_bytes = [4-byte LE len][ed_sig][4-byte LE len][mldsa_sig]
         // (per lupine-sign hybrid.rs serialization format)
@@ -561,6 +562,8 @@ mod tests {
 
     #[test]
     fn hybrid_sig_split_rejects_truncated() {
-        assert!(split_hybrid_sig(&[0, 0, 0, 0]).is_err() || split_hybrid_sig(&[1, 0, 0, 0]).is_err());
+        assert!(
+            split_hybrid_sig(&[0, 0, 0, 0]).is_err() || split_hybrid_sig(&[1, 0, 0, 0]).is_err()
+        );
     }
 }

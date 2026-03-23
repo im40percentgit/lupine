@@ -1,0 +1,39 @@
+# Security audit workflow for Lupine
+#
+# Runs cargo-audit weekly to check for known CVEs in the dependency tree.
+# Also runs on push to main so new dependency additions are audited immediately.
+#
+# cargo-audit checks Cargo.lock against the RustSec advisory database.
+# See: https://rustsec.org/advisories/
+
+name: Security Audit
+
+on:
+  schedule:
+    # Weekly on Monday at 08:00 UTC
+    - cron: "0 8 * * 1"
+  push:
+    branches: [main]
+    paths:
+      # Only trigger on dependency changes
+      - "Cargo.lock"
+      - "**/Cargo.toml"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  audit:
+    name: Cargo Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+
+      - name: Run security audit
+        run: cargo audit

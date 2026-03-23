@@ -25,13 +25,9 @@
 //!   `--ignored` flag or in release mode. Hybrid tests at 10 cases balance
 //!   coverage with the combined cost of two signature operations per case.
 
-use proptest::prelude::*;
-use lupine_sign::{
-    ml_dsa_generate_keypair,
-    slh_dsa_generate_keypair,
-    hybrid_generate_keypair,
-};
+use lupine_sign::{hybrid_generate_keypair, ml_dsa_generate_keypair, slh_dsa_generate_keypair};
 use ml_dsa::{KeyGen, MlDsaParams};
+use proptest::prelude::*;
 use slh_dsa::ParameterSet;
 
 // ── Large-stack helper ────────────────────────────────────────────────────────
@@ -164,7 +160,8 @@ fn prop_slhdsa_sign_verify<P: ParameterSet>(message: &[u8]) {
     let mut rng = rand::rng();
     let (sk, vk) = slh_dsa_generate_keypair::<P>(&mut rng).expect("SLH-DSA keygen must succeed");
     let sig = sk.sign(message).expect("SLH-DSA sign must succeed");
-    vk.verify(message, &sig).expect("SLH-DSA verify must succeed");
+    vk.verify(message, &sig)
+        .expect("SLH-DSA verify must succeed");
 }
 
 fn prop_slhdsa_message_mutation_fails<P: ParameterSet>(message: Vec<u8>, mutation_idx: usize) {
@@ -212,7 +209,8 @@ fn prop_hybrid_sign_verify<P: KeyGen + MlDsaParams>(message: &[u8]) {
     let mut rng = rand::rng();
     let (sk, vk) = hybrid_generate_keypair::<P>(&mut rng).expect("hybrid keygen must succeed");
     let sig = sk.sign(message).expect("hybrid sign must succeed");
-    vk.verify(message, &sig).expect("hybrid verify must succeed");
+    vk.verify(message, &sig)
+        .expect("hybrid verify must succeed");
 }
 
 fn prop_hybrid_wrong_key_rejects<P: KeyGen + MlDsaParams>(message: &[u8]) {

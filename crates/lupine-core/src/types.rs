@@ -18,8 +18,8 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use zeroize::{Zeroize, ZeroizeOnDrop};
 use core::fmt;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// A shared secret produced by a KEM encapsulation or decapsulation.
 ///
@@ -95,8 +95,15 @@ mod tests {
     fn debug_is_redacted() {
         let s = SharedSecret::new(vec![0xde, 0xad, 0xbe, 0xef]);
         let dbg = format!("{:?}", s);
-        assert!(dbg.contains("<redacted>"), "debug output must be redacted: {}", dbg);
-        assert!(!dbg.contains("de"), "raw bytes must not appear in debug output");
+        assert!(
+            dbg.contains("<redacted>"),
+            "debug output must be redacted: {}",
+            dbg
+        );
+        assert!(
+            !dbg.contains("de"),
+            "raw bytes must not appear in debug output"
+        );
     }
 
     #[test]

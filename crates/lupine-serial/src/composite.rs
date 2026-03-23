@@ -30,7 +30,7 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use der::{Decode, Encode, Sequence, asn1::OctetString};
+use der::{asn1::OctetString, Decode, Encode, Sequence};
 use lupine_core::{Error, KemAlgorithm, Result, SerializationError, SignAlgorithm};
 
 // OID constants are defined in crate::oid but variant discrimination in this
@@ -219,12 +219,13 @@ fn encode_envelope(tag_byte: u8, classical: &[u8], pqc: &[u8]) -> Result<Vec<u8>
         pqc: OctetString::new(pqc.to_vec())
             .map_err(|_| ser_err("PQC component too large for DER"))?,
     };
-    env.to_der().map_err(|_| ser_err("composite DER encoding failed"))
+    env.to_der()
+        .map_err(|_| ser_err("composite DER encoding failed"))
 }
 
 fn decode_envelope(der_bytes: &[u8]) -> Result<(u8, Vec<u8>, Vec<u8>)> {
-    let env = CompositeEnvelope::from_der(der_bytes)
-        .map_err(|_| ser_err("invalid composite DER"))?;
+    let env =
+        CompositeEnvelope::from_der(der_bytes).map_err(|_| ser_err("invalid composite DER"))?;
     let tag_slice = env.variant_tag.as_bytes();
     if tag_slice.len() != 1 {
         return Err(ser_err("composite variant tag must be exactly 1 byte"));
@@ -255,7 +256,8 @@ mod tests {
 
     #[test]
     fn composite_kem_512_roundtrip() {
-        let der = encode_composite_kem_key(CompositeKemVariant::X25519MlKem512, CLASSICAL, PQC).unwrap();
+        let der =
+            encode_composite_kem_key(CompositeKemVariant::X25519MlKem512, CLASSICAL, PQC).unwrap();
         let (v, c, p) = decode_composite_kem_key(&der).unwrap();
         assert_eq!(v, CompositeKemVariant::X25519MlKem512);
         assert_eq!(c, CLASSICAL);
@@ -264,7 +266,8 @@ mod tests {
 
     #[test]
     fn composite_kem_768_roundtrip() {
-        let der = encode_composite_kem_key(CompositeKemVariant::X25519MlKem768, CLASSICAL, PQC).unwrap();
+        let der =
+            encode_composite_kem_key(CompositeKemVariant::X25519MlKem768, CLASSICAL, PQC).unwrap();
         let (v, c, p) = decode_composite_kem_key(&der).unwrap();
         assert_eq!(v, CompositeKemVariant::X25519MlKem768);
         assert_eq!(c, CLASSICAL);
@@ -273,7 +276,8 @@ mod tests {
 
     #[test]
     fn composite_kem_1024_roundtrip() {
-        let der = encode_composite_kem_key(CompositeKemVariant::X25519MlKem1024, CLASSICAL, PQC).unwrap();
+        let der =
+            encode_composite_kem_key(CompositeKemVariant::X25519MlKem1024, CLASSICAL, PQC).unwrap();
         let (v, c, p) = decode_composite_kem_key(&der).unwrap();
         assert_eq!(v, CompositeKemVariant::X25519MlKem1024);
         assert_eq!(c, CLASSICAL);
@@ -284,7 +288,8 @@ mod tests {
 
     #[test]
     fn composite_sign_key_44_roundtrip() {
-        let der = encode_composite_sign_key(CompositeSignVariant::Ed25519MlDsa44, CLASSICAL, PQC).unwrap();
+        let der = encode_composite_sign_key(CompositeSignVariant::Ed25519MlDsa44, CLASSICAL, PQC)
+            .unwrap();
         let (v, c, p) = decode_composite_sign_key(&der).unwrap();
         assert_eq!(v, CompositeSignVariant::Ed25519MlDsa44);
         assert_eq!(c, CLASSICAL);
@@ -293,7 +298,8 @@ mod tests {
 
     #[test]
     fn composite_sign_key_65_roundtrip() {
-        let der = encode_composite_sign_key(CompositeSignVariant::Ed25519MlDsa65, CLASSICAL, PQC).unwrap();
+        let der = encode_composite_sign_key(CompositeSignVariant::Ed25519MlDsa65, CLASSICAL, PQC)
+            .unwrap();
         let (v, c, p) = decode_composite_sign_key(&der).unwrap();
         assert_eq!(v, CompositeSignVariant::Ed25519MlDsa65);
         assert_eq!(c, CLASSICAL);
@@ -302,7 +308,8 @@ mod tests {
 
     #[test]
     fn composite_sign_key_87_roundtrip() {
-        let der = encode_composite_sign_key(CompositeSignVariant::Ed25519MlDsa87, CLASSICAL, PQC).unwrap();
+        let der = encode_composite_sign_key(CompositeSignVariant::Ed25519MlDsa87, CLASSICAL, PQC)
+            .unwrap();
         let (v, c, p) = decode_composite_sign_key(&der).unwrap();
         assert_eq!(v, CompositeSignVariant::Ed25519MlDsa87);
         assert_eq!(c, CLASSICAL);
@@ -319,7 +326,8 @@ mod tests {
             CompositeSignVariant::Ed25519MlDsa65,
             sig_classical,
             sig_pqc,
-        ).unwrap();
+        )
+        .unwrap();
         let (v, c, p) = decode_composite_signature(&der).unwrap();
         assert_eq!(v, CompositeSignVariant::Ed25519MlDsa65);
         assert_eq!(c, sig_classical);
@@ -330,8 +338,10 @@ mod tests {
 
     #[test]
     fn variant_tags_are_distinct() {
-        let der512 = encode_composite_kem_key(CompositeKemVariant::X25519MlKem512, CLASSICAL, PQC).unwrap();
-        let der768 = encode_composite_kem_key(CompositeKemVariant::X25519MlKem768, CLASSICAL, PQC).unwrap();
+        let der512 =
+            encode_composite_kem_key(CompositeKemVariant::X25519MlKem512, CLASSICAL, PQC).unwrap();
+        let der768 =
+            encode_composite_kem_key(CompositeKemVariant::X25519MlKem768, CLASSICAL, PQC).unwrap();
         // Different variants produce different bytes
         assert_ne!(der512, der768);
         // And decode to the correct variant
@@ -344,7 +354,8 @@ mod tests {
     #[test]
     fn kem_tag_rejected_as_sign() {
         // A composite KEM blob must not decode as a composite sign key.
-        let der = encode_composite_kem_key(CompositeKemVariant::X25519MlKem512, CLASSICAL, PQC).unwrap();
+        let der =
+            encode_composite_kem_key(CompositeKemVariant::X25519MlKem512, CLASSICAL, PQC).unwrap();
         assert!(decode_composite_sign_key(&der).is_err());
     }
 
@@ -365,7 +376,13 @@ mod tests {
 
     #[test]
     fn variant_algorithm_accessors() {
-        assert_eq!(CompositeKemVariant::X25519MlKem768.kem_algorithm(), KemAlgorithm::MlKem768);
-        assert_eq!(CompositeSignVariant::Ed25519MlDsa87.sign_algorithm(), SignAlgorithm::MlDsa87);
+        assert_eq!(
+            CompositeKemVariant::X25519MlKem768.kem_algorithm(),
+            KemAlgorithm::MlKem768
+        );
+        assert_eq!(
+            CompositeSignVariant::Ed25519MlDsa87.sign_algorithm(),
+            SignAlgorithm::MlDsa87
+        );
     }
 }

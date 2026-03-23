@@ -46,8 +46,8 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use ml_dsa::{
-    B32, EncodedSignature, EncodedVerifyingKey, KeyGen, MlDsaParams, Signature, SigningKey,
-    VerifyingKey,
+    EncodedSignature, EncodedVerifyingKey, KeyGen, MlDsaParams, Signature, SigningKey,
+    VerifyingKey, B32,
 };
 use rand_core::CryptoRng;
 use zeroize::Zeroize;
@@ -162,9 +162,7 @@ impl<P: MlDsaParams + KeyGen> MlDsaSigningKey<P> {
     ///
     /// Returns [`Error::InvalidKey`] if `bytes` is not exactly 32 bytes.
     pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let seed_arr: [u8; 32] = bytes
-            .try_into()
-            .map_err(|_| Error::InvalidKey)?;
+        let seed_arr: [u8; 32] = bytes.try_into().map_err(|_| Error::InvalidKey)?;
         let seed = ml_dsa::B32::from(seed_arr);
         let native = SigningKey::<P>::from_seed(&seed);
         Ok(Self {
@@ -213,8 +211,7 @@ impl<P: MlDsaParams + KeyGen> MlDsaSigningKey<P> {
 
 impl<P: MlDsaParams> core::fmt::Debug for MlDsaSigningKey<P> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.debug_struct("MlDsaSigningKey")
-            .finish_non_exhaustive()
+        f.debug_struct("MlDsaSigningKey").finish_non_exhaustive()
     }
 }
 
@@ -240,8 +237,7 @@ impl<P: MlDsaParams> MlDsaVerifyingKey<P> {
     /// Returns [`Error::InvalidKey`] if `bytes` is not the correct length for
     /// this parameter set.
     pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let encoded = EncodedVerifyingKey::<P>::try_from(bytes)
-            .map_err(|_| Error::InvalidKey)?;
+        let encoded = EncodedVerifyingKey::<P>::try_from(bytes).map_err(|_| Error::InvalidKey)?;
         let native = VerifyingKey::<P>::decode(&encoded);
         Ok(Self {
             bytes: bytes.to_vec(),
@@ -263,7 +259,10 @@ impl<P: MlDsaParams> MlDsaVerifyingKey<P> {
     ///
     /// Returns [`Error::Verification`] if the signature is invalid.
     pub fn verify(&self, message: &[u8], signature: &MlDsaSignature<P>) -> Result<()> {
-        if self.native.verify_with_context(message, &[], &signature.native) {
+        if self
+            .native
+            .verify_with_context(message, &[], &signature.native)
+        {
             Ok(())
         } else {
             Err(Error::Verification)
@@ -296,10 +295,8 @@ impl<P: MlDsaParams> MlDsaSignature<P> {
     /// Returns [`Error::Verification`] if `bytes` cannot be decoded as a valid
     /// signature for this parameter set.
     pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let encoded = EncodedSignature::<P>::try_from(bytes)
-            .map_err(|_| Error::Verification)?;
-        let native = Signature::<P>::decode(&encoded)
-            .ok_or(Error::Verification)?;
+        let encoded = EncodedSignature::<P>::try_from(bytes).map_err(|_| Error::Verification)?;
+        let native = Signature::<P>::decode(&encoded).ok_or(Error::Verification)?;
         Ok(Self {
             bytes: bytes.to_vec(),
             native,
@@ -348,19 +345,24 @@ mod tests {
     where
         P: KeyGen + MlDsaParams,
     {
-        let (sk, vk) = generate_keypair::<P>(&mut make_rng())
-            .expect("keygen must succeed");
+        let (sk, vk) = generate_keypair::<P>(&mut make_rng()).expect("keygen must succeed");
         let msg = b"lupine phase 2 test message";
         let sig = sk.sign(msg).expect("sign must succeed");
         vk.verify(msg, &sig).expect("verify must succeed");
     }
 
     #[test]
-    fn roundtrip_44() { roundtrip::<ml_dsa::MlDsa44>(); }
+    fn roundtrip_44() {
+        roundtrip::<ml_dsa::MlDsa44>();
+    }
     #[test]
-    fn roundtrip_65() { roundtrip::<ml_dsa::MlDsa65>(); }
+    fn roundtrip_65() {
+        roundtrip::<ml_dsa::MlDsa65>();
+    }
     #[test]
-    fn roundtrip_87() { with_large_stack(|| roundtrip::<ml_dsa::MlDsa87>()); }
+    fn roundtrip_87() {
+        with_large_stack(|| roundtrip::<ml_dsa::MlDsa87>());
+    }
 
     // ── Tamper detection ─────────────────────────────────────────────────────
 
@@ -389,11 +391,17 @@ mod tests {
     }
 
     #[test]
-    fn tamper_detection_44() { tamper_detection::<ml_dsa::MlDsa44>(); }
+    fn tamper_detection_44() {
+        tamper_detection::<ml_dsa::MlDsa44>();
+    }
     #[test]
-    fn tamper_detection_65() { tamper_detection::<ml_dsa::MlDsa65>(); }
+    fn tamper_detection_65() {
+        tamper_detection::<ml_dsa::MlDsa65>();
+    }
     #[test]
-    fn tamper_detection_87() { with_large_stack(|| tamper_detection::<ml_dsa::MlDsa87>()); }
+    fn tamper_detection_87() {
+        with_large_stack(|| tamper_detection::<ml_dsa::MlDsa87>());
+    }
 
     // ── Wrong-key detection ──────────────────────────────────────────────────
 
@@ -414,11 +422,17 @@ mod tests {
     }
 
     #[test]
-    fn wrong_key_detection_44() { wrong_key_detection::<ml_dsa::MlDsa44>(); }
+    fn wrong_key_detection_44() {
+        wrong_key_detection::<ml_dsa::MlDsa44>();
+    }
     #[test]
-    fn wrong_key_detection_65() { wrong_key_detection::<ml_dsa::MlDsa65>(); }
+    fn wrong_key_detection_65() {
+        wrong_key_detection::<ml_dsa::MlDsa65>();
+    }
     #[test]
-    fn wrong_key_detection_87() { with_large_stack(|| wrong_key_detection::<ml_dsa::MlDsa87>()); }
+    fn wrong_key_detection_87() {
+        with_large_stack(|| wrong_key_detection::<ml_dsa::MlDsa87>());
+    }
 
     // ── Signing key serialization round-trip ─────────────────────────────────
 
@@ -428,8 +442,8 @@ mod tests {
     {
         let (sk, _vk) = generate_keypair::<P>(&mut make_rng()).unwrap();
         let seed_bytes = sk.to_bytes().to_vec();
-        let sk2 = MlDsaSigningKey::<P>::from_bytes(&seed_bytes)
-            .expect("sk round-trip must succeed");
+        let sk2 =
+            MlDsaSigningKey::<P>::from_bytes(&seed_bytes).expect("sk round-trip must succeed");
 
         // Verify the reconstructed key produces the same signature on the same message.
         // (Deterministic signing means equal seeds => equal signatures.)
@@ -444,11 +458,17 @@ mod tests {
     }
 
     #[test]
-    fn sk_serialization_44() { sk_serialization::<ml_dsa::MlDsa44>(); }
+    fn sk_serialization_44() {
+        sk_serialization::<ml_dsa::MlDsa44>();
+    }
     #[test]
-    fn sk_serialization_65() { sk_serialization::<ml_dsa::MlDsa65>(); }
+    fn sk_serialization_65() {
+        sk_serialization::<ml_dsa::MlDsa65>();
+    }
     #[test]
-    fn sk_serialization_87() { with_large_stack(|| sk_serialization::<ml_dsa::MlDsa87>()); }
+    fn sk_serialization_87() {
+        with_large_stack(|| sk_serialization::<ml_dsa::MlDsa87>());
+    }
 
     // ── Verifying key serialization round-trip ───────────────────────────────
 
@@ -458,8 +478,8 @@ mod tests {
     {
         let (_sk, vk) = generate_keypair::<P>(&mut make_rng()).unwrap();
         let vk_bytes = vk.to_bytes().to_vec();
-        let vk2 = MlDsaVerifyingKey::<P>::from_bytes(&vk_bytes)
-            .expect("vk round-trip must succeed");
+        let vk2 =
+            MlDsaVerifyingKey::<P>::from_bytes(&vk_bytes).expect("vk round-trip must succeed");
         assert_eq!(
             vk.to_bytes(),
             vk2.to_bytes(),
@@ -468,11 +488,17 @@ mod tests {
     }
 
     #[test]
-    fn vk_serialization_44() { vk_serialization::<ml_dsa::MlDsa44>(); }
+    fn vk_serialization_44() {
+        vk_serialization::<ml_dsa::MlDsa44>();
+    }
     #[test]
-    fn vk_serialization_65() { vk_serialization::<ml_dsa::MlDsa65>(); }
+    fn vk_serialization_65() {
+        vk_serialization::<ml_dsa::MlDsa65>();
+    }
     #[test]
-    fn vk_serialization_87() { with_large_stack(|| vk_serialization::<ml_dsa::MlDsa87>()); }
+    fn vk_serialization_87() {
+        with_large_stack(|| vk_serialization::<ml_dsa::MlDsa87>());
+    }
 
     // ── Signature bytes serialization round-trip ─────────────────────────────
 
@@ -485,22 +511,29 @@ mod tests {
         let sig = sk.sign(msg).unwrap();
 
         let sig_bytes = sig.to_bytes().to_vec();
-        let sig2 = MlDsaSignature::<P>::from_bytes(&sig_bytes)
-            .expect("sig round-trip must succeed");
+        let sig2 =
+            MlDsaSignature::<P>::from_bytes(&sig_bytes).expect("sig round-trip must succeed");
         assert_eq!(
             sig.to_bytes(),
             sig2.to_bytes(),
             "signature byte round-trip must be identical"
         );
-        vk.verify(msg, &sig2).expect("round-tripped signature must verify");
+        vk.verify(msg, &sig2)
+            .expect("round-tripped signature must verify");
     }
 
     #[test]
-    fn sig_serialization_44() { sig_serialization::<ml_dsa::MlDsa44>(); }
+    fn sig_serialization_44() {
+        sig_serialization::<ml_dsa::MlDsa44>();
+    }
     #[test]
-    fn sig_serialization_65() { sig_serialization::<ml_dsa::MlDsa65>(); }
+    fn sig_serialization_65() {
+        sig_serialization::<ml_dsa::MlDsa65>();
+    }
     #[test]
-    fn sig_serialization_87() { with_large_stack(|| sig_serialization::<ml_dsa::MlDsa87>()); }
+    fn sig_serialization_87() {
+        with_large_stack(|| sig_serialization::<ml_dsa::MlDsa87>());
+    }
 
     // ── Invalid byte rejection ───────────────────────────────────────────────
 

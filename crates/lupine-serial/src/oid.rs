@@ -28,12 +28,10 @@ use lupine_core::{KemAlgorithm, SignAlgorithm};
 // ---------------------------------------------------------------------------
 
 /// OID for ML-KEM-512 (NIST CSOR: 2.16.840.1.101.3.4.4.1).
-pub const OID_ML_KEM_512: ObjectIdentifier =
-    ObjectIdentifier::new_unwrap("2.16.840.1.101.3.4.4.1");
+pub const OID_ML_KEM_512: ObjectIdentifier = ObjectIdentifier::new_unwrap("2.16.840.1.101.3.4.4.1");
 
 /// OID for ML-KEM-768 (NIST CSOR: 2.16.840.1.101.3.4.4.2).
-pub const OID_ML_KEM_768: ObjectIdentifier =
-    ObjectIdentifier::new_unwrap("2.16.840.1.101.3.4.4.2");
+pub const OID_ML_KEM_768: ObjectIdentifier = ObjectIdentifier::new_unwrap("2.16.840.1.101.3.4.4.2");
 
 /// OID for ML-KEM-1024 (NIST CSOR: 2.16.840.1.101.3.4.4.3).
 pub const OID_ML_KEM_1024: ObjectIdentifier =
@@ -44,16 +42,13 @@ pub const OID_ML_KEM_1024: ObjectIdentifier =
 // ---------------------------------------------------------------------------
 
 /// OID for ML-DSA-44 (NIST CSOR: 2.16.840.1.101.3.4.3.17).
-pub const OID_ML_DSA_44: ObjectIdentifier =
-    ObjectIdentifier::new_unwrap("2.16.840.1.101.3.4.3.17");
+pub const OID_ML_DSA_44: ObjectIdentifier = ObjectIdentifier::new_unwrap("2.16.840.1.101.3.4.3.17");
 
 /// OID for ML-DSA-65 (NIST CSOR: 2.16.840.1.101.3.4.3.18).
-pub const OID_ML_DSA_65: ObjectIdentifier =
-    ObjectIdentifier::new_unwrap("2.16.840.1.101.3.4.3.18");
+pub const OID_ML_DSA_65: ObjectIdentifier = ObjectIdentifier::new_unwrap("2.16.840.1.101.3.4.3.18");
 
 /// OID for ML-DSA-87 (NIST CSOR: 2.16.840.1.101.3.4.3.19).
-pub const OID_ML_DSA_87: ObjectIdentifier =
-    ObjectIdentifier::new_unwrap("2.16.840.1.101.3.4.3.19");
+pub const OID_ML_DSA_87: ObjectIdentifier = ObjectIdentifier::new_unwrap("2.16.840.1.101.3.4.3.19");
 
 // ---------------------------------------------------------------------------
 // SLH-DSA OIDs  (FIPS 205 / NIST CSOR 2.16.840.1.101.3.4.3.*)

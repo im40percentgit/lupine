@@ -22,15 +22,12 @@
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use ml_kem::{
-    EncodedSizeUser, KemCore,
     kem::{Decapsulate, Encapsulate},
+    EncodedSizeUser, KemCore,
 };
 use rand::rngs::OsRng;
 
-use lupine_kem::{
-    generate_keypair as mlkem_keygen,
-    hybrid::generate_keypair as hybrid_keygen,
-};
+use lupine_kem::{generate_keypair as mlkem_keygen, hybrid::generate_keypair as hybrid_keygen};
 
 // ── ML-KEM helpers ────────────────────────────────────────────────────────────
 
@@ -51,8 +48,7 @@ fn bench_mlkem_encapsulate<P>(c: &mut Criterion, name: &str)
 where
     P: KemCore,
     P::DecapsulationKey: EncodedSizeUser,
-    P::EncapsulationKey: EncodedSizeUser
-        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::EncapsulationKey: EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
 {
     let (_sk, pk) = mlkem_keygen::<P>(&mut OsRng).expect("keygen failed");
@@ -66,10 +62,8 @@ where
 fn bench_mlkem_decapsulate<P>(c: &mut Criterion, name: &str)
 where
     P: KemCore,
-    P::DecapsulationKey: EncodedSizeUser
-        + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
-    P::EncapsulationKey: EncodedSizeUser
-        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::DecapsulationKey: EncodedSizeUser + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::EncapsulationKey: EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
 {
     let (sk, pk) = mlkem_keygen::<P>(&mut OsRng).expect("keygen failed");
@@ -100,8 +94,7 @@ fn bench_hybrid_encapsulate<P>(c: &mut Criterion, name: &str)
 where
     P: KemCore,
     P::DecapsulationKey: EncodedSizeUser,
-    P::EncapsulationKey: EncodedSizeUser
-        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::EncapsulationKey: EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
 {
     let (_sk, pk) = hybrid_keygen::<P>(&mut OsRng).expect("hybrid keygen failed");
@@ -115,10 +108,8 @@ where
 fn bench_hybrid_decapsulate<P>(c: &mut Criterion, name: &str)
 where
     P: KemCore,
-    P::DecapsulationKey: EncodedSizeUser
-        + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
-    P::EncapsulationKey: EncodedSizeUser
-        + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::DecapsulationKey: EncodedSizeUser + Decapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
+    P::EncapsulationKey: EncodedSizeUser + Encapsulate<ml_kem::Ciphertext<P>, ml_kem::SharedKey<P>>,
     ml_kem::Ciphertext<P>: for<'a> TryFrom<&'a [u8]>,
 {
     let (sk, pk) = hybrid_keygen::<P>(&mut OsRng).expect("hybrid keygen failed");

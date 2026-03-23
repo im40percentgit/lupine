@@ -95,23 +95,30 @@ mod tests {
             &[4u8; 32], // x25519_pk
             &[5u8; 96], // mlkem_pk (example size)
         );
-        assert_eq!(ss.as_bytes().len(), 32, "combined shared secret must be 32 bytes");
+        assert_eq!(
+            ss.as_bytes().len(),
+            32,
+            "combined shared secret must be 32 bytes"
+        );
     }
 
     /// The same inputs must always produce the same output (determinism).
     #[test]
     fn deterministic() {
         let inputs = (
-            [0u8; 32],
-            [1u8; 32],
-            [2u8; 32],
-            [3u8; 64],
-            [4u8; 32],
-            [5u8; 96],
+            [0u8; 32], [1u8; 32], [2u8; 32], [3u8; 64], [4u8; 32], [5u8; 96],
         );
-        let ss1 = kitchen_sink(&inputs.0, &inputs.1, &inputs.2, &inputs.3, &inputs.4, &inputs.5);
-        let ss2 = kitchen_sink(&inputs.0, &inputs.1, &inputs.2, &inputs.3, &inputs.4, &inputs.5);
-        assert_eq!(ss1.as_bytes(), ss2.as_bytes(), "combiner must be deterministic");
+        let ss1 = kitchen_sink(
+            &inputs.0, &inputs.1, &inputs.2, &inputs.3, &inputs.4, &inputs.5,
+        );
+        let ss2 = kitchen_sink(
+            &inputs.0, &inputs.1, &inputs.2, &inputs.3, &inputs.4, &inputs.5,
+        );
+        assert_eq!(
+            ss1.as_bytes(),
+            ss2.as_bytes(),
+            "combiner must be deterministic"
+        );
     }
 
     /// Different inputs must produce different outputs (collision resistance).
