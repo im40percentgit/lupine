@@ -9,5 +9,8 @@
 
 pub use lupine_core as core;
 pub use lupine_kem as kem;
-pub use lupine_sign as sign;
 pub use lupine_serial as serial;
+pub use lupine_sign as sign;
+
+#[cfg(feature = "easy")]
+pub mod easy;

@@ -13,10 +13,11 @@
 - `fuzz/` -- Cargo-fuzz harnesses (DER decode, PEM parse, SPKI decode)
 
 ### Active Work
-- No active worktrees
-- Main branch at `dcc1778` (Phase 6a correctness test suite)
+- Worktree: `feature/canus-lupus-layer1` — Layer 1 high-level easy API (`lupine::easy`)
+- Main branch at `6118942` (post-zeroize merge)
 - All 296 tests passing, 3 fuzz targets defined
-- Next: Phase 7 (Benchmarks + Performance)
+- Phase 7 (Benchmarks) completed; Phase 6b (Zeroize) completed
+- Next: Layer 1 easy API (this worktree), then canus-lupus CLI (Layer 2)
 
 ---
 
@@ -97,6 +98,7 @@ Implemented `lupine-core` (Error, SecurityLevel, KemAlgorithm, SignAlgorithm, Sh
 - DEC-CORE-004: SharedSecret as opaque newtype with zeroize-on-drop (accepted)
 - DEC-KEM-001: Generic wrapper over KemCore (accepted)
 - DEC-KEM-002: Byte-vec serialization at API boundary (accepted)
+- DEC-KEM-003: Manual Drop for MlKemSecretKey instead of ZeroizeOnDrop derive (accepted)
 
 ## Phase 2: ML-DSA & SLH-DSA Signatures
 **Status:** completed
@@ -109,6 +111,8 @@ Implemented `lupine-sign` with ML-DSA (FIPS 204) for parameter sets 44/65/87 and
 - DEC-SIGN-002: Native API approach to avoid signature 2.x/3.x conflict (accepted)
 - DEC-SIGN-003: Vec<u8> for SLH-DSA signature bytes at wrapper boundary (accepted)
 - DEC-SIGN-004: Deterministic signing as default for SLH-DSA (accepted)
+- DEC-SIGN-005: Manual Drop for MlDsaSigningKey instead of ZeroizeOnDrop derive (accepted)
+- DEC-SIGN-006: Manual Drop for SlhDsaSigningKey instead of ZeroizeOnDrop derive (accepted)
 
 ## Phase 3: Hybrid Cryptographic Modes
 **Status:** completed
@@ -135,6 +139,7 @@ Implemented `lupine-serial` with DER encoding (SEQUENCE { AlgorithmIdentifier, O
 - DEC-SERIAL-003: Standard PEM labels for PQC keys (accepted)
 - DEC-SERIAL-004: Manual SPKI encoder vs spki RC crate (accepted)
 - DEC-SERIAL-005: DER SEQUENCE for composite format (accepted)
+- DEC-SERIAL-006: Integration test scope: synthetic bytes + real ML-KEM keys (accepted)
 
 ## Phase 5: CLI Interface
 **Status:** completed
@@ -147,6 +152,11 @@ Implemented `lupine-cli` with subcommands: keygen, encapsulate, decapsulate, sig
 - DEC-CLI-002: Unified --format flag with PEM default (accepted)
 - DEC-CLI-003: Composite encoder for hybrid keys (accepted)
 - DEC-CLI-004: Callback-macro dispatch pattern (accepted)
+- DEC-CLI-005: Inline callback macros per command rather than shared generic functions (accepted)
+- DEC-CLI-006: Ciphertext always written as raw bytes regardless of --format (accepted)
+- DEC-CLI-007: --pub-key required for hybrid KEM raw-format decapsulation (accepted)
+- DEC-CLI-008: Stdin as default message source for sign and verify (accepted)
+- DEC-CLI-009: Exit code 1 (not panic) on verification failure (accepted)
 - DEC-CLI-010: Large-stack thread wrapper for SLH-DSA (accepted)
 
 ## Phase 6a: Correctness & Validation Test Suite
@@ -156,10 +166,26 @@ Implemented `lupine-cli` with subcommands: keygen, encapsulate, decapsulate, sig
 Added KAT (Known Answer Test) vectors for ML-KEM and ML-DSA. Property-based tests with proptest for KEM and signature operations. Integration tests for the serialization layer. 296 total tests passing.
 
 ### Decision Log
-(No new architectural decisions -- test infrastructure only)
+- DEC-TEST-KEM-001: Deterministic RNG via StdRng::from_seed for KAT tests (accepted)
+- DEC-TEST-KEM-002: Integration roundtrip tests separate from inline unit tests (accepted)
+- DEC-TEST-KEM-003: Proptest case counts: 20 for ML-KEM, 10 for hybrid (accepted)
+- DEC-TEST-SIGN-001: StdRng::from_seed for deterministic KAT vectors in lupine-sign (accepted)
+- DEC-TEST-SIGN-002: SLH-DSA roundtrip tests limited to 3 representative variants (accepted)
+- DEC-TEST-SIGN-003: Proptest case counts: 20 for ML-DSA, 10 for hybrid, 3 for SLH-DSA (accepted)
+
+## Phase 6b: Zeroize / Memory Safety
+**Status:** completed
+**Issues:** (predates issue tracking — merged as feature/zeroize)
+
+Added `Zeroize` and `ZeroizeOnDrop` to all secret key types: `MlKemSecretKey`, `MlDsaSigningKey`, `SlhDsaSigningKey`, `HybridKemSecretKey`, `HybridSigningKey`. Used manual `Drop` impls where `derive` cannot be used due to non-Zeroize fields. Defense-in-depth applied to non-secret but key-adjacent bytes (e.g., cached public key bytes in `HybridKemSecretKey`).
+
+### Decision Log
+- DEC-KEM-003: Manual Drop for MlKemSecretKey instead of ZeroizeOnDrop derive (accepted) — in Phase 1 log
+- DEC-SIGN-005: Manual Drop for MlDsaSigningKey instead of ZeroizeOnDrop derive (accepted) — in Phase 2 log
+- DEC-SIGN-006: Manual Drop for SlhDsaSigningKey instead of ZeroizeOnDrop derive (accepted) — in Phase 2 log
 
 ## Phase 7: Benchmarks + Performance
-**Status:** planned
+**Status:** completed
 **Decision IDs:** DEC-BENCH-001, DEC-BENCH-002, DEC-BENCH-003, DEC-BENCH-004
 **Requirements:** REQ-P0-001, REQ-P0-002, REQ-P0-003, REQ-P0-004, REQ-P0-005, REQ-P0-006
 **Issues:** #1, #2, #3, #4
@@ -222,7 +248,34 @@ Added KAT (Known Answer Test) vectors for ML-KEM and ML-DSA. Property-based test
 - Depends on Tasks 1-3 completing first
 
 ### Decision Log
-<!-- Guardian appends here after phase completion -->
+- DEC-BENCH-001: Criterion as benchmark framework (accepted)
+- DEC-BENCH-002: Benchmarks in per-crate benches/ dirs (accepted)
+- DEC-BENCH-003: SLH-DSA representative subset (3 of 12) for P0 (accepted)
+- DEC-BENCH-004: Release-mode only benchmarks (accepted)
+- DEC-BENCH-KEM-001: One Criterion group per operation family for KEM benchmarks (accepted)
+- DEC-BENCH-SIGN-001: Separate Criterion groups per algorithm family for sign benchmarks (accepted)
+- DEC-BENCH-SIGN-002: SLH-DSA benchmarks scoped to 3 of 12 parameter sets (accepted)
+
+## Phase 12: Layer 1 — High-Level Easy API
+**Status:** in-progress
+**Branch:** `feature/canus-lupus-layer1`
+**Issues:** (canus-lupus design doc: `~/.gstack/projects/im40percentgit-lupine/j-main-design-20260322-192206.md`)
+**Definition of Done:**
+- `lupine::easy::generate_keys()`, `encrypt()`, `decrypt()`, `sign()`, `verify()` work end-to-end
+- KEM-DEM construction: HKDF-SHA-256 + ChaCha20-Poly1305 with v1 wire format
+- All new tests pass; existing 296 tests have zero regressions
+- `cargo clippy --workspace -- -D warnings` clean
+
+### Planned Decisions
+- DEC-EASY-001: KEM-DEM construction with HKDF-SHA-256 + ChaCha20-Poly1305 (accepted)
+- DEC-EASY-002: Version-byte wire format for algorithm agility (accepted)
+- DEC-EASY-003: AAD = version_byte || KEM_ciphertext for binding (accepted)
+
+### Implementation Plan
+- `crates/lupine/src/easy.rs` — new module with Error, Keypair, generate_keys, encrypt, decrypt, sign, verify
+- `crates/lupine/src/lib.rs` — conditional `pub mod easy` behind `easy` feature
+- `crates/lupine/Cargo.toml` — `easy` feature (default-on) gating chacha20poly1305, hkdf, sha2, rand
+- Workspace `Cargo.toml` — add chacha20poly1305 = "0.10"
 
 ## Phase 8: Documentation & Examples (planned)
 **Status:** planned
