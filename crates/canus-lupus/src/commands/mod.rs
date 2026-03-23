@@ -8,6 +8,7 @@ pub mod encrypt;
 pub mod keygen;
 pub mod keys;
 pub mod sign;
+pub mod vault;
 pub mod verify;
 
 use clap::{Parser, Subcommand};
@@ -34,6 +35,8 @@ pub enum Command {
     Verify(verify::VerifyArgs),
     /// Manage known keys (list, import, export).
     Keys(keys::KeysArgs),
+    /// Manage encrypted secrets (init, set, get, list, rm).
+    Vault(vault::VaultArgs),
 }
 
 /// Dispatch the parsed CLI to the appropriate command handler.
@@ -45,5 +48,6 @@ pub fn run(cli: Cli) -> anyhow::Result<()> {
         Command::Sign(ref a) => sign::run(a),
         Command::Verify(ref a) => verify::run(a),
         Command::Keys(ref a) => keys::run(a),
+        Command::Vault(ref a) => vault::run(a),
     }
 }

@@ -18,6 +18,11 @@
 //! canus-lupus keys list                   # list all known keys
 //! canus-lupus keys import <file.pub>      # import a public key bundle
 //! canus-lupus keys export --public        # print own public key bundle
+//! canus-lupus vault init                  # initialize vault
+//! canus-lupus vault set api/openai "sk-..." # store a secret
+//! canus-lupus vault get api/openai        # retrieve a secret
+//! canus-lupus vault list                  # list stored paths
+//! canus-lupus vault rm api/openai         # remove a secret
 //! ```
 //!
 //! # Stack size
@@ -37,6 +42,7 @@
 
 mod commands;
 mod keystore;
+mod vault;
 
 use clap::Parser;
 

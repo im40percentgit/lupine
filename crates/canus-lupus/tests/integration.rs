@@ -437,3 +437,154 @@ fn encrypt_missing_key_gives_helpful_error() {
         "error must mention loading failure; stderr: {stderr}"
     );
 }
+
+// ── vault ─────────────────────────────────────────────────────────────────────
+
+#[test]
+fn vault_init_creates_vault_dir() {
+    let dir = tempfile::tempdir().unwrap();
+    run(dir.path(), &["keygen"]);
+
+    let (code, _stdout, stderr) = run(dir.path(), &["vault", "init"]);
+    assert_eq!(code, 0, "vault init must exit 0; stderr: {stderr}");
+
+    let vault_dir = dir.path().join("vault");
+    assert!(vault_dir.exists(), "vault directory must be created");
+    assert!(vault_dir.is_dir(), "vault path must be a directory");
+}
+
+#[test]
+fn vault_init_without_keypair_fails() {
+    let dir = tempfile::tempdir().unwrap();
+    // No keygen — no default keypair exists.
+    let (code, _stdout, _stderr) = run(dir.path(), &["vault", "init"]);
+    assert_ne!(code, 0, "vault init must fail when no keypair exists");
+}
+
+#[test]
+fn vault_set_get_roundtrip() {
+    let dir = tempfile::tempdir().unwrap();
+    run(dir.path(), &["keygen"]);
+    run(dir.path(), &["vault", "init"]);
+
+    let (code, _stdout, stderr) = run(
+        dir.path(),
+        &["vault", "set", "api/openai", "sk-testvalue123"],
+    );
+    assert_eq!(code, 0, "vault set must exit 0; stderr: {stderr}");
+
+    let enc_file = dir.path().join("vault").join("api").join("openai.enc");
+    assert!(
+        enc_file.exists(),
+        "encrypted file must exist at vault/api/openai.enc"
+    );
+
+    let (code, stdout, stderr) = run(dir.path(), &["vault", "get", "api/openai"]);
+    assert_eq!(code, 0, "vault get must exit 0; stderr: {stderr}");
+    assert_eq!(
+        stdout, "sk-testvalue123",
+        "vault get must return exact plaintext"
+    );
+}
+
+#[test]
+fn vault_get_no_trailing_newline() {
+    let dir = tempfile::tempdir().unwrap();
+    run(dir.path(), &["keygen"]);
+    run(dir.path(), &["vault", "init"]);
+    run(dir.path(), &["vault", "set", "tok", "abc"]);
+
+    let (code, stdout, _stderr) = run(dir.path(), &["vault", "get", "tok"]);
+    assert_eq!(code, 0);
+    // stdout must be exactly "abc" with no trailing newline.
+    assert_eq!(
+        stdout.as_bytes(),
+        b"abc",
+        "vault get must produce no trailing newline"
+    );
+}
+
+#[test]
+fn vault_list_shows_stored_paths() {
+    let dir = tempfile::tempdir().unwrap();
+    run(dir.path(), &["keygen"]);
+    run(dir.path(), &["vault", "init"]);
+    run(dir.path(), &["vault", "set", "api/openai", "v1"]);
+    run(dir.path(), &["vault", "set", "api/github", "v2"]);
+    run(dir.path(), &["vault", "set", "db/prod", "v3"]);
+
+    let (code, stdout, stderr) = run(dir.path(), &["vault", "list"]);
+    assert_eq!(code, 0, "vault list must exit 0; stderr: {stderr}");
+    assert!(
+        stdout.contains("api/openai"),
+        "list must contain api/openai; got: {stdout}"
+    );
+    assert!(
+        stdout.contains("api/github"),
+        "list must contain api/github; got: {stdout}"
+    );
+    assert!(
+        stdout.contains("db/prod"),
+        "list must contain db/prod; got: {stdout}"
+    );
+}
+
+#[test]
+fn vault_rm_removes_entry() {
+    let dir = tempfile::tempdir().unwrap();
+    run(dir.path(), &["keygen"]);
+    run(dir.path(), &["vault", "init"]);
+    run(dir.path(), &["vault", "set", "api/openai", "sk-val"]);
+
+    let (code, _stdout, stderr) = run(dir.path(), &["vault", "rm", "api/openai"]);
+    assert_eq!(code, 0, "vault rm must exit 0; stderr: {stderr}");
+
+    // The encrypted file must be gone.
+    let enc_file = dir.path().join("vault").join("api").join("openai.enc");
+    assert!(!enc_file.exists(), "vault rm must delete the .enc file");
+
+    // vault get must now fail.
+    let (code, _stdout, _stderr) = run(dir.path(), &["vault", "get", "api/openai"]);
+    assert_ne!(code, 0, "vault get must fail after rm");
+}
+
+#[test]
+fn vault_rm_prunes_empty_parent_dirs() {
+    let dir = tempfile::tempdir().unwrap();
+    run(dir.path(), &["keygen"]);
+    run(dir.path(), &["vault", "init"]);
+    run(dir.path(), &["vault", "set", "group/only-entry", "v"]);
+
+    run(dir.path(), &["vault", "rm", "group/only-entry"]);
+
+    // The now-empty 'group' subdirectory should be pruned.
+    let group_dir = dir.path().join("vault").join("group");
+    assert!(
+        !group_dir.exists(),
+        "empty parent dir must be pruned after rm"
+    );
+}
+
+#[test]
+fn vault_set_overwrites_existing_entry() {
+    let dir = tempfile::tempdir().unwrap();
+    run(dir.path(), &["keygen"]);
+    run(dir.path(), &["vault", "init"]);
+
+    run(dir.path(), &["vault", "set", "key", "original"]);
+    run(dir.path(), &["vault", "set", "key", "updated"]);
+
+    let (code, stdout, stderr) = run(dir.path(), &["vault", "get", "key"]);
+    assert_eq!(code, 0, "vault get must exit 0; stderr: {stderr}");
+    assert_eq!(stdout, "updated", "second set must overwrite the first");
+}
+
+#[test]
+fn vault_get_missing_entry_fails() {
+    let dir = tempfile::tempdir().unwrap();
+    run(dir.path(), &["keygen"]);
+    run(dir.path(), &["vault", "init"]);
+
+    let (code, _stdout, _stderr) = run(dir.path(), &["vault", "get", "no/such/key"]);
+    assert_ne!(code, 0, "vault get on missing entry must fail");
+}
