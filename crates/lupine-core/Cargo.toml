@@ -3,7 +3,12 @@ name = "lupine-core"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "Core types, traits, and error handling for the Lupine PQC suite"
+keywords = ["post-quantum", "cryptography", "pqc", "fips", "security"]
+categories = ["cryptography", "no-std"]
+readme = "README.md"
 
 [features]
 default = ["std"]

@@ -3,7 +3,12 @@ name = "lupine-sign"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "Signature implementations (ML-DSA, SLH-DSA, hybrid Ed25519+ML-DSA) for the Lupine PQC suite"
+keywords = ["post-quantum", "cryptography", "ml-dsa", "slh-dsa", "fips204"]
+categories = ["cryptography"]
+readme = "README.md"
 
 [features]
 default = ["std"]

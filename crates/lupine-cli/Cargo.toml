@@ -3,14 +3,19 @@ name = "lupine-cli"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "CLI for the Lupine PQC suite"
+keywords = ["post-quantum", "cryptography", "cli", "pqc", "fips"]
+categories = ["cryptography", "command-line-utilities"]
+readme = "README.md"
 
 [[bin]]
 name = "lupine"
 path = "src/main.rs"
 
 [dependencies]
-lupine = { path = "../lupine" }
+lupine = { path = "../lupine", version = "0.1.0" }
 lupine-core = { workspace = true }
 lupine-kem = { workspace = true }
 lupine-sign = { workspace = true }

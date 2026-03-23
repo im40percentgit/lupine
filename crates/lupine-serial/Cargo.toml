@@ -3,7 +3,12 @@ name = "lupine-serial"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "Serialization (DER, PEM, SPKI) for the Lupine PQC suite"
+keywords = ["post-quantum", "cryptography", "der", "pem", "spki"]
+categories = ["cryptography", "encoding"]
+readme = "README.md"
 
 [features]
 default = ["std"]

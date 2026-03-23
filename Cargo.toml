@@ -18,15 +18,16 @@ exclude = ["fuzz"]
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/j/lupine"
+repository = "https://github.com/im40percentgit/lupine"
+homepage = "https://github.com/im40percentgit/lupine"
 rust-version = "1.75"
 
 [workspace.dependencies]
 # Internal crates
-lupine-core = { path = "crates/lupine-core" }
-lupine-kem = { path = "crates/lupine-kem" }
-lupine-sign = { path = "crates/lupine-sign" }
-lupine-serial = { path = "crates/lupine-serial" }
+lupine-core = { path = "crates/lupine-core", version = "0.1.0" }
+lupine-kem = { path = "crates/lupine-kem", version = "0.1.0" }
+lupine-sign = { path = "crates/lupine-sign", version = "0.1.0" }
+lupine-serial = { path = "crates/lupine-serial", version = "0.1.0" }
 
 # PQC primitives (RustCrypto)
 # ml-kem 0.2 internally depends on kem = "0.3.0-pre.0" (not a stable release).

@@ -3,7 +3,12 @@ name = "canus-lupus"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "canus-lupus — Post-quantum Swiss Army Knife CLI (Layer 2 of the canus-lupus stack)"
+keywords = ["post-quantum", "cryptography", "cli", "pqc", "security"]
+categories = ["cryptography", "command-line-utilities"]
+readme = "README.md"
 
 [[bin]]
 name = "canus-lupus"
@@ -11,7 +16,7 @@ path = "src/main.rs"
 
 [dependencies]
 # High-level API (Layer 1) — requires the `easy` feature which is on by default.
-lupine = { path = "../lupine" }
+lupine = { path = "../lupine", version = "0.1.0" }
 # Internal crates — needed for concrete key types used in keystore.
 lupine-kem = { workspace = true }
 lupine-sign = { workspace = true }

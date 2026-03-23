@@ -3,7 +3,12 @@ name = "lupine-kem"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "KEM implementations (ML-KEM, hybrid X25519+ML-KEM) for the Lupine PQC suite"
+keywords = ["post-quantum", "cryptography", "ml-kem", "kyber", "fips203"]
+categories = ["cryptography"]
+readme = "README.md"
 
 [features]
 default = ["std"]

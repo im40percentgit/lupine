@@ -3,7 +3,12 @@ name = "lupine"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "Lupine — Post-Quantum Cryptographic Suite (FIPS 203/204/205)"
+keywords = ["post-quantum", "cryptography", "pqc", "fips", "security"]
+categories = ["cryptography"]
+readme = "README.md"
 
 [features]
 # `std` enables the std::error::Error impl on lupine_core::Error and standard
