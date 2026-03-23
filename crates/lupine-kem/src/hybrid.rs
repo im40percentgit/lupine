@@ -289,7 +289,7 @@ where
     /// Set the cached ML-KEM public key bytes.
     ///
     /// This is set automatically by [`generate_keypair`]. If the key was
-    /// deserialized via [`from_bytes`], the caller can restore the cached
+    /// deserialized via [`Self::from_bytes`], the caller can restore the cached
     /// bytes by calling this method with the corresponding public key bytes.
     pub fn set_mlkem_pk_bytes(&mut self, pk_bytes: Vec<u8>) {
         self.mlkem_pk_bytes = pk_bytes;
@@ -301,7 +301,7 @@ where
     ///
     /// Returns [`Error::Decapsulation`] if the ML-KEM decapsulation fails.
     /// Returns [`Error::InvalidKey`] if the ML-KEM public key bytes are missing
-    /// (the key was deserialized without calling [`set_mlkem_pk_bytes`]).
+    /// (the key was deserialized without calling [`Self::set_mlkem_pk_bytes`]).
     pub fn decapsulate(
         &self,
         ct: &HybridKemCiphertext<P>,

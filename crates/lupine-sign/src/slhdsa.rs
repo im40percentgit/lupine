@@ -30,7 +30,7 @@
 //! | `SlhDsaShake256f*`         | SHAKE  | 5     |128 B | 64 B | 49856 B|
 //!
 //! @decision DEC-SIGN-003
-//! @title Vec<u8> for SLH-DSA signature bytes at the wrapper boundary
+//! @title `Vec<u8>` for SLH-DSA signature bytes at the wrapper boundary
 //! @status accepted
 //! @rationale SLH-DSA signatures range from 7 856 to 49 856 bytes. The
 //!   underlying `slh_dsa::Signature<P>` uses a fixed-size stack-allocated

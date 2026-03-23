@@ -10,7 +10,7 @@
 //! @status accepted
 //! @rationale A newtype (not a type alias) is required to implement custom
 //!   Debug (redacting the bytes), Zeroize-on-drop, and to prevent accidental
-//!   use of the raw Vec<u8> in a context that expects a structured secret. A
+//!   use of the raw `Vec<u8>` in a context that expects a structured secret. A
 //!   type alias would be transparent to the type system and allow callers to
 //!   bypass the redacted Debug impl. The newtype costs one extra line at each
 //!   call site (.0 or .as_bytes()) but provides meaningful safety guarantees.

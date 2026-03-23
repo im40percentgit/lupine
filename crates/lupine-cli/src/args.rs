@@ -77,7 +77,7 @@ pub struct KeygenArgs {
     pub format: Format,
 
     /// Output filename prefix (default: algorithm name).
-    /// Generates <prefix>.pub and <prefix>.sec unless overridden.
+    /// Generates `<prefix>.pub` and `<prefix>.sec` unless overridden.
     #[arg(short = 'o', long)]
     pub output: Option<String>,
 

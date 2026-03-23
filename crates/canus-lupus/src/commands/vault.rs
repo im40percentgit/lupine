@@ -44,9 +44,9 @@ pub struct VaultArgs {
 pub enum VaultCommand {
     /// Initialize the vault (creates ~/.canus-lupus/vault/ with mode 0700).
     Init,
-    /// Store a secret at <path>. Reads from stdin if VALUE is omitted.
+    /// Store a secret at `<path>`. Reads from stdin if VALUE is omitted.
     Set(SetArgs),
-    /// Retrieve a secret at <path> and print it to stdout (no trailing newline).
+    /// Retrieve a secret at `<path>` and print it to stdout (no trailing newline).
     Get(GetArgs),
     /// List all secret paths stored in the vault.
     List,

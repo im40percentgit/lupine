@@ -29,7 +29,7 @@ pub enum Command {
     Encrypt(encrypt::EncryptArgs),
     /// Decrypt an encrypted file.
     Decrypt(decrypt::DecryptArgs),
-    /// Sign a file (produces <file>.sig).
+    /// Sign a file (produces `<file>.sig`).
     Sign(sign::SignArgs),
     /// Verify a file's signature.
     Verify(verify::VerifyArgs),
