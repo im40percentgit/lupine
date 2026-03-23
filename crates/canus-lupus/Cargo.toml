@@ -1,0 +1,29 @@
+[package]
+name = "canus-lupus"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "canus-lupus — Post-quantum Swiss Army Knife CLI (Layer 2 of the canus-lupus stack)"
+
+[[bin]]
+name = "canus-lupus"
+path = "src/main.rs"
+
+[dependencies]
+# High-level API (Layer 1) — requires the `easy` feature which is on by default.
+lupine = { path = "../lupine" }
+# Internal crates — needed for concrete key types used in keystore.
+lupine-kem = { workspace = true }
+lupine-sign = { workspace = true }
+# Serial crate for PEM encoding/decoding of keys.
+lupine-serial = { workspace = true }
+# CLI argument parsing.
+clap = { workspace = true }
+# Error handling for CLI tools.
+anyhow = { workspace = true }
+# Home directory resolution.
+dirs-next = "2"
+
+[dev-dependencies]
+# Temporary directories for integration tests.
+tempfile = "3"
