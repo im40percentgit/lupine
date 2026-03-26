@@ -147,6 +147,7 @@ dependencies = [
  "anyhow",
  "clap",
  "dirs-next",
+ "lupine-core",
  "lupine-kem",
  "lupine-pqc",
  "lupine-serial",

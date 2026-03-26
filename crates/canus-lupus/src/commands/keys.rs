@@ -4,6 +4,7 @@
 //! - `keys list` — List all known keys in the keystore.
 //! - `keys import <file>` — Import a public key bundle from a file.
 //! - `keys export` — Export own public key bundle to stdout.
+//! - `keys export --ssh` — Export all four keys in OpenSSH format.
 //!
 //! @decision DEC-CLI-025
 //! @title Public key bundle format: two PEM blocks concatenated
@@ -18,6 +19,20 @@
 //!   returns the KEM block and the second needs a trimmed string.
 //!   An alternative (JSON envelope) would be more structured but adds a
 //!   serde dependency and is harder to inspect with standard tools.
+//!
+//! @decision DEC-CLI-030
+//! @title SSH export uses KemAlgorithm::MlKem768 / SignAlgorithm::MlDsa65 labels
+//! @status accepted
+//! @rationale The canus-lupus keystore uses hybrid keys (X25519+ML-KEM-768 and
+//!   Ed25519+ML-DSA-65). The lupine_serial::ssh module's KemAlgorithm enum only
+//!   covers pure ML-KEM parameter sets; hybrid variants are recognised on decode
+//!   but not enumerated. We use MlKem768 / MlDsa65 as the algorithm tag when
+//!   encoding SSH keys — the resulting labels are `mlkem768@lupine.dev` and
+//!   `mldsa65@lupine.dev`. The raw key bytes are the hybrid concatenated bytes
+//!   (X25519||ML-KEM and Ed25519||ML-DSA respectively) so canus-lupus can
+//!   round-trip them back; other SSH clients will not be able to use these keys
+//!   directly (they are custom PQC types), so label precision is less important
+//!   than byte-level fidelity.
 
 use std::fs;
 use std::path::PathBuf;
@@ -58,6 +73,16 @@ pub struct ExportArgs {
     /// Name of the keypair to export (default: "default").
     #[arg(long, default_value = "default")]
     pub name: String,
+
+    /// Export keys in OpenSSH format instead of PEM.
+    ///
+    /// Prints four blocks to stdout:
+    ///   - KEM public key as a one-line `<algo> <base64>` OpenSSH public key
+    ///   - KEM secret key as a `-----BEGIN OPENSSH PRIVATE KEY-----` PEM block
+    ///   - Sign public key as a one-line `<algo> <base64>` OpenSSH public key
+    ///   - Sign secret key as a `-----BEGIN OPENSSH PRIVATE KEY-----` PEM block
+    #[arg(long)]
+    pub ssh: bool,
 }
 
 pub fn run(args: &KeysArgs) -> anyhow::Result<()> {
@@ -130,6 +155,10 @@ fn run_import(args: &ImportArgs) -> anyhow::Result<()> {
 }
 
 fn run_export(args: &ExportArgs) -> anyhow::Result<()> {
+    if args.ssh {
+        return run_export_ssh(args);
+    }
+
     let kem_pk = keystore::load_kem_pk(&args.name)
         .map_err(|e| anyhow::anyhow!("cannot load KEM key '{}': {e}", args.name))?;
     let sign_pk = keystore::load_sign_pk(&args.name)
@@ -142,5 +171,84 @@ fn run_export(args: &ExportArgs) -> anyhow::Result<()> {
 
     // Print both blocks to stdout — the caller can redirect to a file.
     print!("{kem_pem}{sign_pem}");
+    Ok(())
+}
+
+/// Export all four keys (KEM pk, KEM sk, sign pk, sign sk) in OpenSSH format.
+///
+/// Output is four sections separated by blank lines:
+///
+/// ```text
+/// # kem public key
+/// mlkem768@lupine.dev <base64>
+///
+/// # kem secret key
+/// -----BEGIN OPENSSH PRIVATE KEY-----
+/// ...
+/// -----END OPENSSH PRIVATE KEY-----
+///
+/// # sign public key
+/// mldsa65@lupine.dev <base64>
+///
+/// # sign secret key
+/// -----BEGIN OPENSSH PRIVATE KEY-----
+/// ...
+/// -----END OPENSSH PRIVATE KEY-----
+/// ```
+///
+/// The KEM secret key requires the matching public key file to be present
+/// (see DEC-KEYSTORE-002).
+fn run_export_ssh(args: &ExportArgs) -> anyhow::Result<()> {
+    use lupine_core::{KemAlgorithm, SignAlgorithm};
+
+    // Load public keys.
+    let kem_pk = keystore::load_kem_pk(&args.name)
+        .map_err(|e| anyhow::anyhow!("cannot load KEM public key '{}': {e}", args.name))?;
+    let sign_pk = keystore::load_sign_pk(&args.name)
+        .map_err(|e| anyhow::anyhow!("cannot load sign public key '{}': {e}", args.name))?;
+
+    // Load secret keys (requires both sk and pk files per DEC-KEYSTORE-002).
+    let kem_sk = keystore::load_kem_sk(&args.name)
+        .map_err(|e| anyhow::anyhow!("cannot load KEM secret key '{}': {e}", args.name))?;
+    let sign_sk = keystore::load_sign_sk(&args.name)
+        .map_err(|e| anyhow::anyhow!("cannot load sign secret key '{}': {e}", args.name))?;
+
+    // The keystore uses HybridKemPublicKey768 (X25519+ML-KEM-768) and
+    // HybridSigningKey65 (Ed25519+ML-DSA-65). We tag them with the
+    // underlying PQC parameter set — see DEC-CLI-030.
+    let kem_algo = KemAlgorithm::MlKem768;
+    let sign_algo = SignAlgorithm::MlDsa65;
+
+    let kem_pk_ssh =
+        lupine_serial::ssh::encode_kem_public_key_openssh(kem_algo, &kem_pk.to_bytes())
+            .map_err(|e| anyhow::anyhow!("SSH encode KEM public key: {e}"))?;
+
+    let kem_sk_ssh = lupine_serial::ssh::encode_kem_secret_key_openssh(
+        kem_algo,
+        &kem_sk.to_bytes(),
+        &kem_pk.to_bytes(),
+    )
+    .map_err(|e| anyhow::anyhow!("SSH encode KEM secret key: {e}"))?;
+
+    let sign_pk_ssh =
+        lupine_serial::ssh::encode_sign_public_key_openssh(sign_algo, &sign_pk.to_bytes())
+            .map_err(|e| anyhow::anyhow!("SSH encode sign public key: {e}"))?;
+
+    let sign_sk_ssh = lupine_serial::ssh::encode_sign_secret_key_openssh(
+        sign_algo,
+        &sign_sk.to_bytes(),
+        &sign_pk.to_bytes(),
+    )
+    .map_err(|e| anyhow::anyhow!("SSH encode sign secret key: {e}"))?;
+
+    println!("# kem public key");
+    println!("{kem_pk_ssh}");
+    println!("# kem secret key");
+    print!("{kem_sk_ssh}");
+    println!("# sign public key");
+    println!("{sign_pk_ssh}");
+    println!("# sign secret key");
+    print!("{sign_sk_ssh}");
+
     Ok(())
 }
