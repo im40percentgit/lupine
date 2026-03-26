@@ -127,6 +127,32 @@ jobs:
         run: cargo test --workspace
 
   # -------------------------------------------------------------------------
+  # no_std: verify no_std + alloc builds on a bare-metal target
+  # lupine-sign excluded: RC deps (ml-dsa, slh-dsa) require std.
+  # Uses cargo check (not test) because there is no test harness on
+  # bare-metal targets.
+  # -------------------------------------------------------------------------
+  no_std:
+    name: no_std (thumbv7em)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: thumbv7em-none-eabi
+
+      - name: Check lupine-core (no_std + alloc)
+        run: cargo check -p lupine-core --target thumbv7em-none-eabi --no-default-features --features alloc
+
+      - name: Check lupine-kem (no_std + alloc)
+        run: cargo check -p lupine-kem --target thumbv7em-none-eabi --no-default-features --features alloc
+
+      - name: Check lupine-serial (no_std + alloc)
+        run: cargo check -p lupine-serial --target thumbv7em-none-eabi --no-default-features --features alloc
+
+  # -------------------------------------------------------------------------
   # doc: verify rustdoc builds without errors
   #
   # RUSTDOCFLAGS=-D warnings treats broken intra-doc links and missing docs

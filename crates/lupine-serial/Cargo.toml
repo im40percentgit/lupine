@@ -12,15 +12,18 @@ readme = "README.md"
 
 [features]
 default = ["std"]
-std = ["lupine-core/std"]
-alloc = ["lupine-core/alloc"]
+std = ["lupine-core/std", "der/std", "pem-rfc7468/std"]
+alloc = ["lupine-core/alloc", "der/alloc", "pem-rfc7468/alloc"]
 
 [dependencies]
 lupine-core = { workspace = true }
-lupine-kem = { workspace = true }
-lupine-sign = { workspace = true }
-der = { workspace = true }
-pem-rfc7468 = { workspace = true }
+# lupine-kem and lupine-sign are used only in dev-dependencies (integration
+# tests). Neither is imported in library source. Keeping them here caused
+# lupine-sign's RC deps (signature 3.x, rand 0.10) to pull in std, breaking
+# bare-metal cargo check --no-default-features --features alloc.
+der = { workspace = true, default-features = false }
+pem-rfc7468 = { workspace = true, default-features = false }
+base64ct = { workspace = true }
 # spki crate is still RC (0.8.0-rc.4); SPKI encoding is done manually instead.
 
 [dev-dependencies]
@@ -34,4 +37,4 @@ lupine-kem = { workspace = true }
 # (ml_kem::MlKem512/768/1024 used as generic args to test helpers).
 ml-kem = { workspace = true }
 # rand 0.8 (workspace default): compatible with lupine-kem's CryptoRngCore bound.
-rand = { workspace = true }
+rand = { workspace = true, features = ["std", "std_rng"] }

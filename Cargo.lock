@@ -931,7 +931,6 @@ dependencies = [
  "hex",
  "lupine-core",
  "lupine-kem",
- "lupine-sign",
  "ml-kem",
  "pem-rfc7468",
  "rand 0.8.5",

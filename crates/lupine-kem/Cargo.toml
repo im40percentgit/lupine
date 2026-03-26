@@ -12,11 +12,11 @@ readme = "README.md"
 
 [features]
 default = ["std"]
-std = ["lupine-core/std"]
+std = ["lupine-core/std", "ml-kem/std"]
 alloc = ["lupine-core/alloc"]
 
 [dependencies]
-lupine-core = { workspace = true }
+lupine-core = { workspace = true, default-features = false }
 ml-kem = { workspace = true }
 # Phase 3 (hybrid X25519+ML-KEM) deps:
 x25519-dalek = { workspace = true }
@@ -25,14 +25,17 @@ sha2 = { workspace = true }
 # No direct `kem` dep: we use ml_kem::kem::{Encapsulate, Decapsulate} which
 # are re-exported from ml-kem itself, avoiding the pre-release version mismatch.
 rand_core = { workspace = true }
-rand = { workspace = true }
+# rand is only used in tests (OsRng); disable default std feature so
+# bare-metal cargo check (-p lupine-kem --no-default-features --features alloc)
+# does not pull in getrandom/std. Tests run with std so OsRng remains available.
+rand = { workspace = true, default-features = false }
 zeroize = { workspace = true }
 hybrid-array = { workspace = true }
 
 [dev-dependencies]
 hex = { workspace = true }
 proptest = { workspace = true }
-rand = { workspace = true }
+rand = { workspace = true, features = ["std", "std_rng"] }
 criterion = { workspace = true }
 
 [[bench]]

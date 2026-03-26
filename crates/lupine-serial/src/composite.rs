@@ -212,7 +212,7 @@ fn encode_envelope(tag_byte: u8, classical: &[u8], pqc: &[u8]) -> Result<Vec<u8>
     // OctetString::new (alloc feature) takes impl Into<Box<[u8]>>; Vec<u8>
     // satisfies that bound. The single-byte tag is collected into a Vec first.
     let env = CompositeEnvelope {
-        variant_tag: OctetString::new(vec![tag_byte])
+        variant_tag: OctetString::new(alloc::vec![tag_byte])
             .map_err(|_| ser_err("variant tag encoding failed"))?,
         classical: OctetString::new(classical.to_vec())
             .map_err(|_| ser_err("classical component too large for DER"))?,
