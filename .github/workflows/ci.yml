@@ -122,6 +122,9 @@ jobs:
         with:
           key: msrv-1.75
 
+      - name: Downgrade lockfile for MSRV compatibility
+        run: rm Cargo.lock && cargo generate-lockfile
+
       - name: Run tests on MSRV
         run: cargo test --workspace
 
