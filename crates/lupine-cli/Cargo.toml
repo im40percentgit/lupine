@@ -15,7 +15,7 @@ name = "lupine"
 path = "src/main.rs"
 
 [dependencies]
-lupine = { path = "../lupine", version = "0.1.0" }
+lupine = { package = "lupine-pqc", path = "../lupine", version = "0.1.0" }
 lupine-core = { workspace = true }
 lupine-kem = { workspace = true }
 lupine-sign = { workspace = true }

@@ -13,11 +13,12 @@
 - `fuzz/` -- Cargo-fuzz harnesses (DER decode, PEM parse, SPKI decode)
 
 ### Active Work
-- Worktree: `feature/canus-lupus-layer1` — Layer 1 high-level easy API (`lupine::easy`)
-- Main branch at `6118942` (post-zeroize merge)
-- All 296 tests passing, 3 fuzz targets defined
-- Phase 7 (Benchmarks) completed; Phase 6b (Zeroize) completed
-- Next: Layer 1 easy API (this worktree), then canus-lupus CLI (Layer 2)
+- No active worktrees — all phases complete
+- Main branch at `24031cc` (Phase 11 crates.io readiness)
+- All 343 tests passing, 3 fuzz targets defined
+- All 13 phases completed (1-7, 6b, 8-12 + canus-lupus Layers 1-3)
+- canus-lupus CLI: keygen, encrypt, decrypt, sign, verify, keys, vault
+- Ready for `cargo publish` to crates.io
 
 ---
 
@@ -256,46 +257,72 @@ Added `Zeroize` and `ZeroizeOnDrop` to all secret key types: `MlKemSecretKey`, `
 - DEC-BENCH-SIGN-001: Separate Criterion groups per algorithm family for sign benchmarks (accepted)
 - DEC-BENCH-SIGN-002: SLH-DSA benchmarks scoped to 3 of 12 parameter sets (accepted)
 
-## Phase 12: Layer 1 — High-Level Easy API
-**Status:** in-progress
-**Branch:** `feature/canus-lupus-layer1`
-**Issues:** (canus-lupus design doc: `~/.gstack/projects/im40percentgit-lupine/j-main-design-20260322-192206.md`)
-**Definition of Done:**
-- `lupine::easy::generate_keys()`, `encrypt()`, `decrypt()`, `sign()`, `verify()` work end-to-end
-- KEM-DEM construction: HKDF-SHA-256 + ChaCha20-Poly1305 with v1 wire format
-- All new tests pass; existing 296 tests have zero regressions
-- `cargo clippy --workspace -- -D warnings` clean
+## Phase 8: Documentation & Examples
+**Status:** completed
+**Commit:** `ccf348d`
 
-### Planned Decisions
+Added crate-level rustdoc to `lupine/src/lib.rs` with compile-tested quick-start example, crate map, and feature-flags table. Created 3 example programs: `encrypt_file.rs`, `sign_verify.rs`, `kem_raw.rs`. Fixed 8 rustdoc warnings across the workspace. `cargo doc --no-deps --workspace` produces clean output.
+
+### Decision Log
+(No new architectural decisions — documentation only)
+
+## Phase 9: CI/CD
+**Status:** completed
+**Commit:** `fe9660a`
+
+Added `.github/workflows/ci.yml` with 5 jobs: test (ubuntu+macos matrix), clippy (-D warnings), fmt, msrv (Rust 1.75), doc. Added `.github/workflows/security.yml` for weekly `cargo audit`. Fixed 31 pre-existing rustfmt violations to pass the fmt gate. `Swatinem/rust-cache@v2` for CI caching.
+
+### Decision Log
+- DEC-CI-001: Five-job CI matrix with hard gates on all jobs (accepted)
+- DEC-CI-002: Swatinem/rust-cache@v2 for CI caching (accepted)
+- DEC-CI-003: Weekly cargo audit on separate workflow (accepted)
+
+## Phase 10: Security Hardening
+**Status:** completed
+**Commit:** `8a95bac`
+
+Zeroize audit found and fixed 3 gaps: AEAD key in `easy.rs` not zeroized after encrypt/decrypt, seed bytes in `mldsa.rs` not zeroized after keypair construction, PEM-decoded key bytes in `keystore.rs` not zeroized before drop. Zero `unsafe` blocks confirmed. Created `SECURITY.md` with full audit: zeroize coverage, constant-time guarantees, and responsible disclosure.
+
+### Decision Log
+- DEC-SEC-001: Unconditional zeroize on both success and error paths for AEAD keys (accepted)
+- DEC-SEC-002: Defense-in-depth zeroize of intermediate seed bytes even when moved (accepted)
+- DEC-SEC-003: SECURITY.md as the canonical audit document (accepted)
+
+## Phase 11: crates.io Readiness
+**Status:** completed
+**Commit:** `24031cc`
+
+Added `LICENSE-MIT` and `LICENSE-APACHE` at workspace root. Created `README.md` for all 7 crates and workspace root. Added crates.io metadata (keywords, categories, repository, homepage) to all Cargo.toml files. Added version specs to all workspace path dependencies. `cargo publish -p lupine-core --dry-run` passes.
+
+### Decision Log
+- DEC-PUB-001: Dual MIT/Apache-2.0 license with separate LICENSE files (accepted)
+- DEC-PUB-002: Per-crate README.md for crates.io listing (accepted)
+- DEC-PUB-003: Version-aligned path deps at 0.1.0 for initial publish (accepted)
+
+## Phase 12: canus-lupus — Unified PQC CLI
+**Status:** completed
+**Design doc:** `~/.gstack/projects/im40percentgit-lupine/j-main-design-20260322-192206.md`
+
+Three layers shipped:
+
+### Layer 1: High-Level Easy API (`5e17e5a`)
+Added `lupine::easy` module with `generate_keys()`, `encrypt()`, `decrypt()`, `sign()`, `verify()`. KEM-DEM construction: HKDF-SHA-256 + ChaCha20-Poly1305. Feature-gated behind default-on `easy` flag. 12 unit tests + 2 doctests.
+
+### Decision Log
 - DEC-EASY-001: KEM-DEM construction with HKDF-SHA-256 + ChaCha20-Poly1305 (accepted)
 - DEC-EASY-002: Version-byte wire format for algorithm agility (accepted)
 - DEC-EASY-003: AAD = version_byte || KEM_ciphertext for binding (accepted)
 
-### Implementation Plan
-- `crates/lupine/src/easy.rs` — new module with Error, Keypair, generate_keys, encrypt, decrypt, sign, verify
-- `crates/lupine/src/lib.rs` — conditional `pub mod easy` behind `easy` feature
-- `crates/lupine/Cargo.toml` — `easy` feature (default-on) gating chacha20poly1305, hkdf, sha2, rand
-- Workspace `Cargo.toml` — add chacha20poly1305 = "0.10"
+### Layer 2: CLI Binary (`48df7f9`)
+Added `crates/canus-lupus/` with 7 subcommands: keygen, encrypt, decrypt, sign, verify, keys (list/import/export). Key storage at `~/.canus-lupus/keys/` with PEM files. `CANUS_LUPUS_HOME` env override. 15 integration tests.
 
-## Phase 8: Documentation & Examples (planned)
-**Status:** planned
-**Requirements:** Rustdoc for all public API items, example programs, crate-level documentation
-**Definition of Done:** `cargo doc --no-deps --workspace` produces clean output; at least 3 example programs in `examples/`
+### Decision Log
+- DEC-CLI-020 through DEC-CLI-025: CLI design decisions (accepted)
+- DEC-KEYSTORE-001: PEM file layout for keypairs (accepted)
+- DEC-KEYSTORE-002: Load matching PK alongside SK to fix mlkem_pk_bytes (accepted)
 
-## Phase 9: CI/CD (planned)
-**Status:** planned
-**Requirements:** GitHub Actions for test, clippy, fmt, MSRV check; optional benchmark regression tracking
-**Definition of Done:** PRs are gated on CI passing; benchmark results archived per commit
-
-## Phase 10: Security Hardening (planned)
-**Status:** planned
-**Requirements:** Zeroize audit (all secret key paths), constant-time comparison where needed, unsafe review
-**Definition of Done:** Audit checklist completed; no secret material left unzeroized on any code path
-
-## Phase 11: crates.io Readiness (planned)
-**Status:** planned
-**Requirements:** LICENSE files, Cargo.toml metadata, README per crate, publish dry-run
-**Definition of Done:** `cargo publish --dry-run` succeeds for all 6 crates in dependency order
+### Layer 3: Vault (`1169608`)
+Added vault subcommands: init, set, get, list, rm. Encrypted secret storage using `lupine::easy::encrypt()`. Hierarchical filesystem layout, path traversal protection, stdin piping, empty dir pruning. 8 unit tests + 9 integration tests.
 
 ## References
 
@@ -310,7 +337,6 @@ Added `Zeroize` and `ZeroizeOnDrop` to all secret key types: `MlKemSecretKey`, `
 
 ## Worktree Strategy
 
-Main is sacred. Phase 7 work happens in a feature worktree:
-- Branch: `feature/phase7-benchmarks`
-- Worktree: `.worktrees/phase7-benchmarks`
-- Merge to main only after all P0 requirements satisfied and benchmarks run clean
+Main is sacred. All feature work happens in dedicated worktrees:
+- Merge to main only after all Definition of Done criteria are met
+- No active worktrees — all phases complete

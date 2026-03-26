@@ -16,7 +16,7 @@ path = "src/main.rs"
 
 [dependencies]
 # High-level API (Layer 1) — requires the `easy` feature which is on by default.
-lupine = { path = "../lupine", version = "0.1.0" }
+lupine = { package = "lupine-pqc", path = "../lupine", version = "0.1.0" }
 # Internal crates — needed for concrete key types used in keystore.
 lupine-kem = { workspace = true }
 lupine-sign = { workspace = true }

@@ -1,4 +1,4 @@
-# lupine
+# lupine-pqc
 
 Post-quantum cryptography for Rust — FIPS 203 (ML-KEM), FIPS 204 (ML-DSA), FIPS 205 (SLH-DSA) with hybrid classical+PQC modes.
 
@@ -8,7 +8,7 @@ This is the top-level facade crate. It re-exports [`lupine-core`], [`lupine-kem`
 
 ```toml
 [dependencies]
-lupine = "0.1"
+lupine-pqc = "0.1"
 ```
 
 ```rust
@@ -37,7 +37,7 @@ See [SECURITY.md](https://github.com/im40percentgit/lupine/blob/main/SECURITY.md
 
 ## Docs
 
-[docs.rs/lupine](https://docs.rs/lupine)
+[docs.rs/lupine-pqc](https://docs.rs/lupine-pqc)
 
 ## License
 
