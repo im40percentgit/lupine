@@ -14,11 +14,10 @@
 
 ### Active Work
 - No active worktrees — all phases complete
-- Main branch at `24031cc` (Phase 11 crates.io readiness)
-- All 343 tests passing, 3 fuzz targets defined
-- All 13 phases completed (1-7, 6b, 8-12 + canus-lupus Layers 1-3)
-- canus-lupus CLI: keygen, encrypt, decrypt, sign, verify, keys, vault
-- Ready for `cargo publish` to crates.io
+- All 15 phases completed (1-7, 6b, 8-14)
+- 367+ tests passing (29 new SSH tests), 3 fuzz targets defined
+- canus-lupus CLI: keygen, encrypt, decrypt, sign, verify, keys (with --ssh export), vault
+- Published to crates.io as v0.1.0 (7 crates)
 
 ---
 
@@ -317,12 +316,54 @@ Added `lupine::easy` module with `generate_keys()`, `encrypt()`, `decrypt()`, `s
 Added `crates/canus-lupus/` with 7 subcommands: keygen, encrypt, decrypt, sign, verify, keys (list/import/export). Key storage at `~/.canus-lupus/keys/` with PEM files. `CANUS_LUPUS_HOME` env override. 15 integration tests.
 
 ### Decision Log
-- DEC-CLI-020 through DEC-CLI-025: CLI design decisions (accepted)
-- DEC-KEYSTORE-001: PEM file layout for keypairs (accepted)
-- DEC-KEYSTORE-002: Load matching PK alongside SK to fix mlkem_pk_bytes (accepted)
+- DEC-CLI-020: Large-stack thread for ML-DSA compatibility in canus-lupus main (accepted)
+- DEC-CLI-021: Encrypt-for-self as default behavior (accepted)
+- DEC-CLI-022: Decrypt requires full keypair load (SK + PK together) (accepted)
+- DEC-CLI-023: Raw signature bytes stored directly — no PEM wrapper on .sig files (accepted)
+- DEC-CLI-024: verify exits non-zero on invalid signature (accepted)
+- DEC-CLI-025: Public key bundle format: two PEM blocks concatenated (accepted)
+- DEC-KEYSTORE-001: PEM storage with raw key bytes (no DER wrapper) (accepted)
+- DEC-KEYSTORE-002: Always load KEM SK and KEM PK together (accepted)
 
 ### Layer 3: Vault (`1169608`)
 Added vault subcommands: init, set, get, list, rm. Encrypted secret storage using `lupine::easy::encrypt()`. Hierarchical filesystem layout, path traversal protection, stdin piping, empty dir pruning. 8 unit tests + 9 integration tests.
+
+### Decision Log
+- DEC-VAULT-001: Encrypt vault entries to the default KEM public key (accepted)
+- DEC-VAULT-002: Hierarchical paths stored as directory trees (accepted)
+- DEC-VAULT-003: vault get writes plaintext without trailing newline (accepted)
+- DEC-VAULT-004: vault set reads value from stdin when no argument is given (accepted)
+- DEC-TEST-001: Use CANUS_LUPUS_HOME env var for test isolation (accepted)
+
+### Example Programs
+Added 3 example programs in `crates/lupine/examples/`: `encrypt_file.rs`, `sign_verify.rs`, `kem_raw.rs`.
+
+### Decision Log
+- DEC-EXAMPLE-001: Example programs use `lupine::easy`, not raw primitives (accepted)
+- DEC-EXAMPLE-002: Hybrid Ed25519+ML-DSA-65 as the default signing algorithm in examples (accepted)
+- DEC-EXAMPLE-003: kem_raw uses ML-KEM-768 (not 512 or 1024) as the illustrative set (accepted)
+
+## Phase 13: no_std CI Validation
+**Status:** completed
+**Commit:** `5ee2b13`
+
+Added CI job (`no_std (thumbv7em)`) that checks `lupine-core`, `lupine-kem`, and `lupine-serial` compile on `thumbv7em-none-eabi` with `--no-default-features --features alloc`. Fixed real no_std bugs: removed phantom deps on `lupine-sign` from `lupine-serial`, disabled default features on `rand`/`ml-kem` at workspace level, fixed `alloc::vec!` and `ToOwned` imports.
+
+### Decision Log
+- DEC-NOSTD-001: Use cargo check not cargo test — no test harness on bare-metal targets (accepted)
+- DEC-NOSTD-002: Exclude lupine-sign — ml-dsa/slh-dsa RC crates require std (accepted)
+- DEC-CI-004: Check all three no_std-capable crates, not just lupine-serial (accepted)
+
+## Phase 14: SSH Key Serialization
+**Status:** completed
+**Commits:** `fef285d`, `d033f37`
+
+New `ssh` module in `lupine-serial` implementing the `openssh-key-v1` binary format for all KEM and signature key types. Algorithm names use `@lupine.dev` domain. 29 tests covering round-trips, edge cases, and error paths. Added `base64ct` dependency (constant-time, no_std compatible). CLI integration: `canus-lupus keys export --ssh <name>`.
+
+### Decision Log
+- DEC-SERIAL-006: SSH algorithm names use `@lupine.dev` namespace (accepted)
+- DEC-SERIAL-007: SLH-DSA not supported in SSH format — signature sizes incompatible with SSH transport (accepted)
+- DEC-SERIAL-008: Check value 0x12345678 for deterministic unencrypted openssh-key-v1 output (accepted)
 
 ## References
 
@@ -339,4 +380,4 @@ Added vault subcommands: init, set, get, list, rm. Encrypted secret storage usin
 
 Main is sacred. All feature work happens in dedicated worktrees:
 - Merge to main only after all Definition of Done criteria are met
-- No active worktrees — all phases complete
+- No active worktrees — all 15 phases complete
