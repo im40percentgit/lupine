@@ -239,8 +239,8 @@ pub fn load_sign_sk(name: &str) -> Result<HybridSigningKey65> {
         fs::read_to_string(&path).with_context(|| format!("cannot read {}", path.display()))?;
     let mut bytes = pem::decode_private_key_pem(&pem_str)
         .map_err(|e| anyhow::anyhow!("PEM decode sign_sk: {e}"))?;
-    let sk_result =
-        HybridSigningKey65::from_bytes(&bytes).map_err(|e| anyhow::anyhow!("deserialize sign_sk: {e}"));
+    let sk_result = HybridSigningKey65::from_bytes(&bytes)
+        .map_err(|e| anyhow::anyhow!("deserialize sign_sk: {e}"));
     // Zeroize the raw secret key bytes now that they have been consumed by
     // HybridSigningKey65::from_bytes(). The deserialized key holds its own copy.
     bytes.zeroize();

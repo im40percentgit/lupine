@@ -41,7 +41,7 @@ fn run() {
     // ── 1. Key generation ──────────────────────────────────────────────────
     println!("Generating keypairs for Alice and Bob...");
     let alice = easy::generate_keys().expect("alice keygen failed");
-    let bob   = easy::generate_keys().expect("bob keygen failed");
+    let bob = easy::generate_keys().expect("bob keygen failed");
     println!(
         "  Alice signing key:   {} bytes (secret)",
         alice.sign_sk.to_bytes().len()
@@ -55,7 +55,10 @@ fn run() {
     let data = b"Lupine v1.0: post-quantum cryptography suite, FIPS 203/204/205 compliant.";
     let signature = easy::sign(&alice.sign_sk, data).expect("signing failed");
     println!("\nAlice signed {} bytes of data.", data.len());
-    println!("Signature size: {} bytes (Ed25519 + ML-DSA-65 composite).", signature.len());
+    println!(
+        "Signature size: {} bytes (Ed25519 + ML-DSA-65 composite).",
+        signature.len()
+    );
 
     // ── 3. Bob verifies with Alice's public key ────────────────────────────
     let valid = easy::verify(&alice.sign_pk, data, &signature)
@@ -68,20 +71,25 @@ fn run() {
     // An Err return would indicate the signature bytes are structurally invalid.
     let wrong_key = easy::verify(&bob.sign_pk, data, &signature)
         .expect("verify must not return Err for a structurally valid signature");
-    assert!(!wrong_key, "Alice's signature must not verify with Bob's key");
+    assert!(
+        !wrong_key,
+        "Alice's signature must not verify with Bob's key"
+    );
     println!("Wrong key check: Bob's key correctly rejected Alice's signature.");
 
     // ── 5. Tampered data: signature no longer matches ─────────────────────
     let tampered_data = b"Lupine v1.0: TAMPERED ANNOUNCEMENT";
     let tampered_valid = easy::verify(&alice.sign_pk, tampered_data, &signature)
         .expect("verify must not return Err for a valid signature over different data");
-    assert!(!tampered_valid, "signature must not verify over tampered data");
+    assert!(
+        !tampered_valid,
+        "signature must not verify over tampered data"
+    );
     println!("Tamper check: signature correctly rejected for modified data.");
 
     // ── 6. Verify that an empty message can also be signed ─────────────────
     let empty_sig = easy::sign(&alice.sign_sk, b"").expect("sign empty");
-    let empty_ok  = easy::verify(&alice.sign_pk, b"", &empty_sig)
-        .expect("verify empty");
+    let empty_ok = easy::verify(&alice.sign_pk, b"", &empty_sig).expect("verify empty");
     assert!(empty_ok, "empty-message signature must verify");
     println!("Empty message: sign/verify round-trip succeeded.");
 

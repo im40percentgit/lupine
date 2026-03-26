@@ -58,7 +58,10 @@ fn run() {
         and authenticated with ChaCha20-Poly1305.\n";
 
     fs::write(plaintext_path, plaintext).expect("failed to write plaintext file");
-    println!("Wrote plaintext ({} bytes) to {plaintext_path}", plaintext.len());
+    println!(
+        "Wrote plaintext ({} bytes) to {plaintext_path}",
+        plaintext.len()
+    );
 
     // ── 3. Encrypt ─────────────────────────────────────────────────────────
     let contents = fs::read(plaintext_path).expect("failed to read plaintext");

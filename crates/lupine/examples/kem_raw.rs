@@ -37,12 +37,18 @@ fn main() {
     println!("ML-KEM-768 key exchange (FIPS 203, NIST Security Level 3)\n");
 
     let mut rng = OsRng;
-    let (secret_key, public_key) = generate_keypair::<ml_kem::MlKem768>(&mut rng)
-        .expect("key generation failed");
+    let (secret_key, public_key) =
+        generate_keypair::<ml_kem::MlKem768>(&mut rng).expect("key generation failed");
 
     println!("Key sizes:");
-    println!("  Public (encapsulation) key: {} bytes", public_key.to_bytes().len());
-    println!("  Secret (decapsulation) key: {} bytes", secret_key.to_bytes().len());
+    println!(
+        "  Public (encapsulation) key: {} bytes",
+        public_key.to_bytes().len()
+    );
+    println!(
+        "  Secret (decapsulation) key: {} bytes",
+        secret_key.to_bytes().len()
+    );
 
     // ── 2. Key serialization round-trip ────────────────────────────────────
     // In practice a sender receives the recipient's public key over the wire.
@@ -50,10 +56,10 @@ fn main() {
     let pk_bytes = public_key.to_bytes().to_vec();
     let sk_bytes = secret_key.to_bytes().to_vec();
 
-    let received_pk = MlKemPublicKey768::from_bytes(&pk_bytes)
-        .expect("public key deserialization failed");
-    let loaded_sk = MlKemSecretKey768::from_bytes(&sk_bytes)
-        .expect("secret key deserialization failed");
+    let received_pk =
+        MlKemPublicKey768::from_bytes(&pk_bytes).expect("public key deserialization failed");
+    let loaded_sk =
+        MlKemSecretKey768::from_bytes(&sk_bytes).expect("secret key deserialization failed");
 
     println!("\nKey serialization round-trip: OK");
 
@@ -62,23 +68,34 @@ fn main() {
     // This produces:
     //   - a ciphertext to send to the recipient
     //   - a shared secret that the sender keeps (never transmitted)
-    let (ciphertext, sender_secret) = received_pk.encapsulate(&mut rng)
+    let (ciphertext, sender_secret) = received_pk
+        .encapsulate(&mut rng)
         .expect("encapsulation failed");
 
     println!("\nEncapsulation:");
-    println!("  Ciphertext:    {} bytes (sent to recipient)", ciphertext.to_bytes().len());
-    println!("  Shared secret: {} bytes (sender keeps this)", sender_secret.as_bytes().len());
+    println!(
+        "  Ciphertext:    {} bytes (sent to recipient)",
+        ciphertext.to_bytes().len()
+    );
+    println!(
+        "  Shared secret: {} bytes (sender keeps this)",
+        sender_secret.as_bytes().len()
+    );
 
     // ── 4. Decapsulation (recipient side) ──────────────────────────────────
     // The recipient calls decapsulate() on their secret key and the ciphertext.
     // Per FIPS 203 §6.4, decapsulation always succeeds: if the ciphertext is
     // invalid, a pseudorandom "implicit rejection" secret is returned instead
     // of an error. This prevents timing-based ciphertext validity oracles.
-    let recipient_secret = loaded_sk.decapsulate(&ciphertext)
+    let recipient_secret = loaded_sk
+        .decapsulate(&ciphertext)
         .expect("decapsulation failed");
 
     println!("\nDecapsulation:");
-    println!("  Shared secret: {} bytes (recipient derives this)", recipient_secret.as_bytes().len());
+    println!(
+        "  Shared secret: {} bytes (recipient derives this)",
+        recipient_secret.as_bytes().len()
+    );
 
     // ── 5. Verify both sides have the same secret ──────────────────────────
     assert_eq!(
@@ -101,17 +118,28 @@ fn main() {
     // security holds if either X25519 or ML-KEM is broken.
     println!("\n── Hybrid X25519+ML-KEM-768 (for comparison) ──");
     use lupine::kem::hybrid_generate_keypair;
-    let (hybrid_sk, hybrid_pk) = hybrid_generate_keypair::<ml_kem::MlKem768>(&mut rng)
-        .expect("hybrid keygen failed");
-    let (hybrid_ct, hybrid_ss_send) = hybrid_pk.encapsulate(&mut rng)
+    let (hybrid_sk, hybrid_pk) =
+        hybrid_generate_keypair::<ml_kem::MlKem768>(&mut rng).expect("hybrid keygen failed");
+    let (hybrid_ct, hybrid_ss_send) = hybrid_pk
+        .encapsulate(&mut rng)
         .expect("hybrid encapsulate failed");
-    let hybrid_ss_recv = hybrid_sk.decapsulate(&hybrid_ct)
+    let hybrid_ss_recv = hybrid_sk
+        .decapsulate(&hybrid_ct)
         .expect("hybrid decapsulate failed");
     assert_eq!(hybrid_ss_send.as_bytes(), hybrid_ss_recv.as_bytes());
 
-    println!("  Hybrid public key:  {} bytes (X25519 || ML-KEM-768)", hybrid_pk.to_bytes().len());
-    println!("  Hybrid ciphertext:  {} bytes (ephemeral X25519 pk || ML-KEM ct)", hybrid_ct.to_bytes().len());
-    println!("  Hybrid shared secret: {} bytes — matches on both sides.", hybrid_ss_send.as_bytes().len());
+    println!(
+        "  Hybrid public key:  {} bytes (X25519 || ML-KEM-768)",
+        hybrid_pk.to_bytes().len()
+    );
+    println!(
+        "  Hybrid ciphertext:  {} bytes (ephemeral X25519 pk || ML-KEM ct)",
+        hybrid_ct.to_bytes().len()
+    );
+    println!(
+        "  Hybrid shared secret: {} bytes — matches on both sides.",
+        hybrid_ss_send.as_bytes().len()
+    );
 
     println!("\nDone.");
 }
