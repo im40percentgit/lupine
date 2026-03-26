@@ -4,7 +4,7 @@ Post-quantum cryptography library implementing FIPS 203/204/205 with hybrid clas
 
 ## Stack
 
-- Language: Rust (edition 2021, MSRV 1.75)
+- Language: Rust (edition 2021, MSRV 1.85)
 - Package manager: Cargo
 - Test framework: built-in `#[test]` + proptest (property-based) + criterion (benchmarks)
 - License: MIT OR Apache-2.0

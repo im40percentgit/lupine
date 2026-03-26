@@ -99,7 +99,7 @@ jobs:
         run: cargo fmt --check --all
 
   # -------------------------------------------------------------------------
-  # msrv: verify compilation + tests against MSRV (1.75, from workspace Cargo.toml)
+  # msrv: verify compilation + tests against MSRV (1.85, from workspace Cargo.toml)
   #
   # @decision DEC-CI-003
   # @title MSRV job uses cargo test, not just cargo check
@@ -109,21 +109,19 @@ jobs:
   #   The test suite is fast enough (~30s on MSRV) that the extra signal is worth it.
   # -------------------------------------------------------------------------
   msrv:
-    name: MSRV (1.75)
+    name: MSRV (1.85)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust 1.75
-        uses: dtolnay/rust-toolchain@1.75
+      - name: Install Rust 1.85
+        uses: dtolnay/rust-toolchain@1.85
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
         with:
-          key: msrv-1.75
+          key: msrv-1.85
 
-      - name: Downgrade lockfile for MSRV compatibility
-        run: rm Cargo.lock && cargo generate-lockfile
 
       - name: Run tests on MSRV
         run: cargo test --workspace

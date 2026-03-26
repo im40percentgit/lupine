@@ -20,7 +20,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/im40percentgit/lupine"
 homepage = "https://github.com/im40percentgit/lupine"
-rust-version = "1.75"
+rust-version = "1.85"
 
 [workspace.dependencies]
 # Internal crates
