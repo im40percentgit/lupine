@@ -927,6 +927,7 @@ dependencies = [
 name = "lupine-serial"
 version = "0.1.0"
 dependencies = [
+ "base64ct",
  "der 0.8.0",
  "hex",
  "lupine-core",

@@ -61,6 +61,7 @@ signature = "2"
 # so we use a manual SPKI encoder in lupine-serial instead of taking an RC dep.
 der = { version = "0.8", default-features = false, features = ["alloc", "derive", "oid"] }
 pem-rfc7468 = { version = "1.0", default-features = false, features = ["alloc"] }
+base64ct = { version = "1", default-features = false, features = ["alloc"] }
 
 # Utilities
 rand_core = { version = "0.6", default-features = false }

@@ -35,3 +35,4 @@ pub mod der;
 pub mod oid;
 pub mod pem;
 pub mod spki;
+pub mod ssh;
