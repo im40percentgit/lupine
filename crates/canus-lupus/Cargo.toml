@@ -25,6 +25,12 @@ lupine-sign = { workspace = true }
 lupine-serial = { workspace = true }
 # Certificate generation and validation (Phase 15).
 lupine-cert = { path = "../lupine-cert", version = "0.1.0" }
+# age-compatible key encoding and file-key wrapping (Phase 16).
+age-plugin-lupine = { path = "../age-plugin-lupine", version = "0.1.0" }
+# ML-KEM-768 type parameter for age keygen.
+ml-kem = { workspace = true }
+# OsRng for age keygen (rand 0.8 — same version as the rest of the workspace).
+rand = { workspace = true, features = ["std", "std_rng"] }
 # DER types used for OID display in the cert subcommand.
 der = { workspace = true, default-features = false }
 # CLI argument parsing.
