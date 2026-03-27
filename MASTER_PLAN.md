@@ -14,7 +14,7 @@
 
 ### Active Work
 - No active worktrees — all phases complete
-- All 16 phases completed (1-7, 6b, 8-15)
+- All 17 phases completed (1-7, 6b, 8-16)
 - 367+ tests passing (29 new SSH tests), 3 fuzz targets defined
 - canus-lupus CLI: keygen, encrypt, decrypt, sign, verify, keys (with --ssh export), vault
 - Published to crates.io as v0.1.0 (7 crates)
@@ -383,6 +383,18 @@ New `lupine-cert` crate with X.509v3 certificate support:
 - DEC-CERT-003: No CRL/OCSP — basic chain validation only (accepted)
 - DEC-CERT-004: SLH-DSA excluded from certificates — signature sizes impractical for X.509 (accepted)
 
+## Phase 16: age Plugin (age-plugin-lupine)
+**Status:** completed
+**Commits:** `4dbac12`..`a28e4fe`
+
+New `age-plugin-lupine` crate providing post-quantum file encryption compatible with age's key format conventions. Hybrid X25519+ML-KEM-768 KEM wraps/unwraps 16-byte file keys. Bech32-encoded recipients (`age1lupine1...`) and identities (`AGE-PLUGIN-LUPINE-1...`). Keygen binary prints age-format output. CLI integration: `canus-lupus age keygen/encrypt/decrypt`. 12 tests in age-plugin-lupine + 3 CLI tests.
+
+### Decision Log
+- DEC-AGE-001: No `age-plugin` crate dependency — implement wrap/unwrap directly to avoid heavy dep tree (accepted)
+- DEC-AGE-002: Bech32 NoChecksum for key encoding — PQC key sizes exceed Bech32m's 1023-char limit (accepted)
+- DEC-AGE-003: Reuse `lupine::easy` wire format for encrypt/decrypt — age key encoding is the interop layer (accepted)
+- DEC-AGE-004: Zero nonce for ChaCha20-Poly1305 file key wrap — safe because wrap key is unique per KEM encapsulation (accepted)
+
 ## References
 
 - FIPS 203 (ML-KEM): https://csrc.nist.gov/pubs/fips/203/final
@@ -398,4 +410,4 @@ New `lupine-cert` crate with X.509v3 certificate support:
 
 Main is sacred. All feature work happens in dedicated worktrees:
 - Merge to main only after all Definition of Done criteria are met
-- No active worktrees — all 16 phases complete
+- No active worktrees — all 17 phases complete
