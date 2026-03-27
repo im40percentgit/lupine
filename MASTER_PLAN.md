@@ -14,7 +14,7 @@
 
 ### Active Work
 - No active worktrees — all phases complete
-- All 15 phases completed (1-7, 6b, 8-14)
+- All 16 phases completed (1-7, 6b, 8-15)
 - 367+ tests passing (29 new SSH tests), 3 fuzz targets defined
 - canus-lupus CLI: keygen, encrypt, decrypt, sign, verify, keys (with --ssh export), vault
 - Published to crates.io as v0.1.0 (7 crates)
@@ -365,6 +365,24 @@ New `ssh` module in `lupine-serial` implementing the `openssh-key-v1` binary for
 - DEC-SERIAL-007: SLH-DSA not supported in SSH format — signature sizes incompatible with SSH transport (accepted)
 - DEC-SERIAL-008: Check value 0x12345678 for deterministic unencrypted openssh-key-v1 output (accepted)
 
+## Phase 15: X.509 Certificates (lupine-cert)
+**Status:** completed
+**Commits:** `4b33ef3`..`f5039a8`
+
+New `lupine-cert` crate with X.509v3 certificate support:
+- **ASN.1 structures:** AlgorithmIdentifier, TbsCertificate, X509Certificate with manual DER encoding for version tag and RDN sequences
+- **Generation:** Self-signed and CA-signed certificates for ML-DSA-44/65/87 and hybrid Ed25519+ML-DSA-44/65/87 via `CertBuilder`
+- **Parsing:** DER and PEM certificate parsing with `Certificate` type (subject/issuer CN, keys, signature extraction)
+- **Validation:** `verify_self_signed()` and `verify_chain()` with OID-based algorithm dispatch
+- **CLI:** `canus-lupus cert generate`, `cert inspect`, `cert verify-chain` subcommands
+- 42 tests in lupine-cert + 6 CLI tests
+
+### Decision Log
+- DEC-CERT-001: Manual ASN.1 encoding with der 0.8 — avoids x509-cert RC crate (accepted)
+- DEC-CERT-002: CertAlgorithm enum separate from SignAlgorithm — covers both pure and hybrid without modifying lupine-core (accepted)
+- DEC-CERT-003: No CRL/OCSP — basic chain validation only (accepted)
+- DEC-CERT-004: SLH-DSA excluded from certificates — signature sizes impractical for X.509 (accepted)
+
 ## References
 
 - FIPS 203 (ML-KEM): https://csrc.nist.gov/pubs/fips/203/final
@@ -380,4 +398,4 @@ New `ssh` module in `lupine-serial` implementing the `openssh-key-v1` binary for
 
 Main is sacred. All feature work happens in dedicated worktrees:
 - Merge to main only after all Definition of Done criteria are met
-- No active worktrees — all 15 phases complete
+- No active worktrees — all 16 phases complete
