@@ -9,6 +9,7 @@ members = [
     "crates/lupine-cli",
     "crates/canus-lupus",
     "crates/lupine-cert",
+    "crates/age-plugin-lupine",
 ]
 # fuzz/ is managed by cargo-fuzz and has its own build system.
 # Excluding it here prevents `cargo build/test --workspace` from pulling in
@@ -69,6 +70,9 @@ rand_core = { version = "0.6", default-features = false }
 rand = { version = "0.8", default-features = false }
 zeroize = { version = "1", features = ["derive"] }
 hybrid-array = "0.2"
+
+# Bech32 encoding (age plugin key format)
+bech32 = "0.11"
 
 # CLI
 clap = { version = "4", features = ["derive"] }
