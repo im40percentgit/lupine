@@ -146,7 +146,9 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "der 0.8.0",
  "dirs-next",
+ "lupine-cert",
  "lupine-core",
  "lupine-kem",
  "lupine-pqc",
@@ -859,6 +861,19 @@ name = "log"
 version = "0.4.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e5032e24019045c762d3c0f28f5b6b8bbf38563a65908389bf7978758920897"
+
+[[package]]
+name = "lupine-cert"
+version = "0.1.0"
+dependencies = [
+ "der 0.8.0",
+ "hex",
+ "lupine-core",
+ "lupine-serial",
+ "lupine-sign",
+ "ml-dsa",
+ "rand 0.10.0",
+]
 
 [[package]]
 name = "lupine-cli"

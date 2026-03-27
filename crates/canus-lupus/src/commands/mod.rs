@@ -3,6 +3,7 @@
 //! Defines the top-level `Cli` struct and `Command` enum, and dispatches to
 //! the appropriate command handler. All subcommands are in sibling modules.
 
+pub mod cert;
 pub mod decrypt;
 pub mod encrypt;
 pub mod keygen;
@@ -37,6 +38,8 @@ pub enum Command {
     Keys(keys::KeysArgs),
     /// Manage encrypted secrets (init, set, get, list, rm).
     Vault(vault::VaultArgs),
+    /// X.509v3 certificate operations (generate, inspect, verify-chain).
+    Cert(cert::CertArgs),
 }
 
 /// Dispatch the parsed CLI to the appropriate command handler.
@@ -49,5 +52,6 @@ pub fn run(cli: Cli) -> anyhow::Result<()> {
         Command::Verify(ref a) => verify::run(a),
         Command::Keys(ref a) => keys::run(a),
         Command::Vault(ref a) => vault::run(a),
+        Command::Cert(ref a) => cert::run(a),
     }
 }
