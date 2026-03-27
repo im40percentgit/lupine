@@ -14,7 +14,7 @@
 
 ### Active Work
 - No active worktrees — all phases complete
-- All 16 phases completed (1-7, 6b, 8-15)
+- All 18 phases completed (1-7, 6b, 8-17)
 - 367+ tests passing (29 new SSH tests), 3 fuzz targets defined
 - canus-lupus CLI: keygen, encrypt, decrypt, sign, verify, keys (with --ssh export), vault
 - Published to crates.io as v0.1.0 (7 crates)
@@ -383,6 +383,18 @@ New `lupine-cert` crate with X.509v3 certificate support:
 - DEC-CERT-003: No CRL/OCSP — basic chain validation only (accepted)
 - DEC-CERT-004: SLH-DSA excluded from certificates — signature sizes impractical for X.509 (accepted)
 
+## Phase 17: WASM Target (lupine-wasm)
+**Status:** completed
+**Commit:** `6353689`
+
+New `lupine-wasm` crate with WebAssembly bindings via `wasm-bindgen`. Exposes `generateKeys`, `encrypt`, `decrypt`, `sign`, `verify` — thin wrappers around the easy API. `Keys` struct with camelCase JS getters returning `Uint8Array`. Browser RNG via `getrandom` js feature (`crypto.getRandomValues`). WASM build verified on `wasm32-unknown-unknown`. 10 native tests.
+
+### Decision Log
+- DEC-WASM-001: Thin wasm-bindgen wrapper over easy API — minimal surface, easy to audit (accepted)
+- DEC-WASM-002: getrandom js feature for browser RNG, separate getrandom04 for rand 0.10 deps (accepted)
+- DEC-WASM-003: Self-contained SK blob format (sk_len || sk || pk) to handle KitchenSink combiner requirement (accepted)
+- DEC-WASM-004: Native #[test] tests prioritized over wasm-bindgen-test for CI reliability (accepted)
+
 ## References
 
 - FIPS 203 (ML-KEM): https://csrc.nist.gov/pubs/fips/203/final
@@ -398,4 +410,4 @@ New `lupine-cert` crate with X.509v3 certificate support:
 
 Main is sacred. All feature work happens in dedicated worktrees:
 - Merge to main only after all Definition of Done criteria are met
-- No active worktrees — all 16 phases complete
+- No active worktrees — all 18 phases complete
