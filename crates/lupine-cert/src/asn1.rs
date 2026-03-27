@@ -451,7 +451,7 @@ fn push_der_length(buf: &mut Vec<u8>, len: usize) {
 /// Parse a DER TLV (Tag-Length-Value), returning `(tag, value_bytes)`.
 ///
 /// Does not recurse into constructed types — returns the raw body bytes.
-fn parse_tlv(input: &[u8]) -> Result<(u8, &[u8])> {
+pub(crate) fn parse_tlv(input: &[u8]) -> Result<(u8, &[u8])> {
     if input.is_empty() {
         return Err(ser_err("empty input in parse_tlv"));
     }
@@ -465,7 +465,7 @@ fn parse_tlv(input: &[u8]) -> Result<(u8, &[u8])> {
 }
 
 /// Compute the total byte length of a TLV element (tag + length + value).
-fn tlv_total_len(input: &[u8]) -> Result<usize> {
+pub(crate) fn tlv_total_len(input: &[u8]) -> Result<usize> {
     if input.is_empty() {
         return Err(ser_err("empty input in tlv_total_len"));
     }
