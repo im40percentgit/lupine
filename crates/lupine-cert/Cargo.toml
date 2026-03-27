@@ -1,0 +1,21 @@
+[package]
+name = "lupine-cert"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "X.509v3 certificate generation and validation for the Lupine PQC suite"
+keywords = ["post-quantum", "cryptography", "x509", "certificate", "pqc"]
+categories = ["cryptography"]
+readme = "README.md"
+
+[dependencies]
+lupine-core = { workspace = true }
+lupine-sign = { workspace = true }
+lupine-serial = { workspace = true }
+der = { workspace = true, default-features = false }
+rand = { workspace = true, features = ["std", "std_rng"] }
+
+[dev-dependencies]
+hex = { workspace = true }
