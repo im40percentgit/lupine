@@ -9,6 +9,7 @@ members = [
     "crates/lupine-cli",
     "crates/canus-lupus",
     "crates/lupine-cert",
+    "crates/lupine-wasm",
 ]
 # fuzz/ is managed by cargo-fuzz and has its own build system.
 # Excluding it here prevents `cargo build/test --workspace` from pulling in
