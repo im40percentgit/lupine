@@ -14,7 +14,7 @@
 
 ### Active Work
 - No active worktrees — all phases complete
-- All 17 phases completed (1-7, 6b, 8-16)
+- All 18 phases completed (1-7, 6b, 8-17)
 - 367+ tests passing (29 new SSH tests), 3 fuzz targets defined
 - canus-lupus CLI: keygen, encrypt, decrypt, sign, verify, keys (with --ssh export), vault
 - Published to crates.io as v0.1.0 (7 crates)
@@ -395,6 +395,18 @@ New `age-plugin-lupine` crate providing post-quantum file encryption compatible 
 - DEC-AGE-003: Reuse `lupine::easy` wire format for encrypt/decrypt — age key encoding is the interop layer (accepted)
 - DEC-AGE-004: Zero nonce for ChaCha20-Poly1305 file key wrap — safe because wrap key is unique per KEM encapsulation (accepted)
 
+## Phase 17: WASM Target (lupine-wasm)
+**Status:** completed
+**Commit:** `560da15`
+
+New `lupine-wasm` crate with WebAssembly bindings via `wasm-bindgen`. Exposes `generateKeys`, `encrypt`, `decrypt`, `sign`, `verify` — thin wrappers around the easy API. `Keys` struct with camelCase JS getters returning `Uint8Array`. Browser RNG via `getrandom` js feature (`crypto.getRandomValues`). WASM build verified on `wasm32-unknown-unknown`. 10 native tests.
+
+### Decision Log
+- DEC-WASM-001: Thin wasm-bindgen wrapper over easy API — minimal surface, easy to audit (accepted)
+- DEC-WASM-002: getrandom js feature for browser RNG, separate getrandom04 for rand 0.10 deps (accepted)
+- DEC-WASM-003: Self-contained SK blob format (sk_len || sk || pk) to handle KitchenSink combiner requirement (accepted)
+- DEC-WASM-004: Native #[test] tests prioritized over wasm-bindgen-test for CI reliability (accepted)
+
 ## References
 
 - FIPS 203 (ML-KEM): https://csrc.nist.gov/pubs/fips/203/final
@@ -410,4 +422,4 @@ New `age-plugin-lupine` crate providing post-quantum file encryption compatible 
 
 Main is sacred. All feature work happens in dedicated worktrees:
 - Merge to main only after all Definition of Done criteria are met
-- No active worktrees — all 17 phases complete
+- No active worktrees — all 18 phases complete
