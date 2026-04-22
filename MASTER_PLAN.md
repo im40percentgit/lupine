@@ -17,7 +17,7 @@
 - All 18 phases completed (1-7, 6b, 8-17)
 - 367+ tests passing (29 new SSH tests), 3 fuzz targets defined
 - canus-lupus CLI: keygen, encrypt, decrypt, sign, verify, keys (with --ssh export), vault
-- Published to crates.io as v0.1.0 (7 crates)
+- Published to crates.io as v0.1.0 (10 crates: lupine-core, lupine-kem, lupine-sign, lupine-serial, lupine-pqc, lupine-cli, canus-lupus, age-plugin-lupine, lupine-cert, lupine-wasm)
 
 ---
 
