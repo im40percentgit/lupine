@@ -26,6 +26,6 @@ slh-dsa = { workspace = true }
 clap = { workspace = true }
 hex = { workspace = true }
 rand = { workspace = true, features = ["std", "std_rng"] }
-rand_010 = { package = "rand", version = "=0.10.0" }
+rand_010 = { package = "rand", version = "=0.10.1" }
 rand_core_010 = { package = "rand_core", version = "=0.10.0" }
 anyhow = { workspace = true }

@@ -43,7 +43,7 @@ rand = { workspace = true, optional = true, features = ["std", "std_rng"] }
 # rand 0.10 (RC, pinned) — required to satisfy lupine-sign's CryptoRng bound.
 # lupine-sign pins rand = "=0.10.0" directly; we match here with a package alias
 # so Cargo keeps both rand versions in the tree without name conflicts.
-rand010 = { package = "rand", version = "=0.10.0", features = ["thread_rng"], optional = true }
+rand010 = { package = "rand", version = "=0.10.1", features = ["thread_rng"], optional = true }
 # Type parameters for generate_keypair<P> — named directly so easy.rs can write
 # ml_kem::MlKem768 and ml_dsa::MlDsa65 as concrete type parameters.
 ml-kem = { workspace = true, optional = true, features = ["std"] }
