@@ -82,8 +82,8 @@ pub fn unwrap_file_key(
     identity_sk: &HybridKemSecretKey768,
 ) -> Result<[u8; 16]> {
     // 1. Deserialize the KEM ciphertext
-    let ct = HybridKemCiphertext768::from_bytes(kem_ciphertext)
-        .context("invalid KEM ciphertext")?;
+    let ct =
+        HybridKemCiphertext768::from_bytes(kem_ciphertext).context("invalid KEM ciphertext")?;
 
     // 2. KEM decapsulate
     let shared_secret = identity_sk

@@ -29,7 +29,9 @@
 use std::io::{self, Read, Write};
 use std::path::PathBuf;
 
-use age_plugin_lupine::keys::{decode_identity, decode_recipient, encode_identity, encode_recipient};
+use age_plugin_lupine::keys::{
+    decode_identity, decode_recipient, encode_identity, encode_recipient,
+};
 use clap::{Args, Subcommand};
 use lupine_kem::hybrid::generate_keypair;
 use ml_kem::MlKem768;
@@ -81,8 +83,9 @@ fn run_keygen(args: &KeygenArgs) -> anyhow::Result<()> {
             let mut content = String::new();
             content.push_str(&format!("# Recipient: {recipient}\n"));
             content.push_str(&format!("{identity}\n"));
-            std::fs::write(path, &content)
-                .map_err(|e| anyhow::anyhow!("cannot write identity to '{}': {e}", path.display()))?;
+            std::fs::write(path, &content).map_err(|e| {
+                anyhow::anyhow!("cannot write identity to '{}': {e}", path.display())
+            })?;
             eprintln!("Identity written to {}", path.display());
         }
         None => {
@@ -161,8 +164,12 @@ pub struct DecryptArgs {
 
 fn run_decrypt(args: &DecryptArgs) -> anyhow::Result<()> {
     // Read and parse the identity file.
-    let identity_str = std::fs::read_to_string(&args.identity)
-        .map_err(|e| anyhow::anyhow!("cannot read identity file '{}': {e}", args.identity.display()))?;
+    let identity_str = std::fs::read_to_string(&args.identity).map_err(|e| {
+        anyhow::anyhow!(
+            "cannot read identity file '{}': {e}",
+            args.identity.display()
+        )
+    })?;
 
     // Extract the identity line: the first non-comment, non-empty line.
     let identity_line = identity_str

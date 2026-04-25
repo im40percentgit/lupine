@@ -39,8 +39,7 @@ use lupine_serial::oid;
 use lupine_serial::pem;
 
 use crate::asn1::{
-    encode_cn, AlgorithmIdentifier, SubjectPublicKeyInfo, TbsCertificate, Validity,
-    X509Certificate,
+    encode_cn, AlgorithmIdentifier, SubjectPublicKeyInfo, TbsCertificate, Validity, X509Certificate,
 };
 
 // ---------------------------------------------------------------------------
@@ -80,7 +79,6 @@ impl CertAlgorithm {
             CertAlgorithm::HybridEd25519MlDsa87 => oid::OID_HYBRID_SIGN_87,
         }
     }
-
 }
 
 // ---------------------------------------------------------------------------
@@ -174,15 +172,9 @@ impl CertBuilder {
             CertAlgorithm::MlDsa44 => self.self_signed_mldsa::<ml_dsa::MlDsa44>(algo),
             CertAlgorithm::MlDsa65 => self.self_signed_mldsa::<ml_dsa::MlDsa65>(algo),
             CertAlgorithm::MlDsa87 => self.self_signed_mldsa::<ml_dsa::MlDsa87>(algo),
-            CertAlgorithm::HybridEd25519MlDsa44 => {
-                self.self_signed_hybrid::<ml_dsa::MlDsa44>(algo)
-            }
-            CertAlgorithm::HybridEd25519MlDsa65 => {
-                self.self_signed_hybrid::<ml_dsa::MlDsa65>(algo)
-            }
-            CertAlgorithm::HybridEd25519MlDsa87 => {
-                self.self_signed_hybrid::<ml_dsa::MlDsa87>(algo)
-            }
+            CertAlgorithm::HybridEd25519MlDsa44 => self.self_signed_hybrid::<ml_dsa::MlDsa44>(algo),
+            CertAlgorithm::HybridEd25519MlDsa65 => self.self_signed_hybrid::<ml_dsa::MlDsa65>(algo),
+            CertAlgorithm::HybridEd25519MlDsa87 => self.self_signed_hybrid::<ml_dsa::MlDsa87>(algo),
         }
     }
 
@@ -267,11 +259,7 @@ impl CertBuilder {
         })
     }
 
-    fn signed_by_mldsa<P>(
-        self,
-        ca: &GeneratedCert,
-        algo: CertAlgorithm,
-    ) -> Result<GeneratedCert>
+    fn signed_by_mldsa<P>(self, ca: &GeneratedCert, algo: CertAlgorithm) -> Result<GeneratedCert>
     where
         P: ml_dsa::KeyGen + ml_dsa::MlDsaParams,
     {
@@ -282,8 +270,7 @@ impl CertBuilder {
         let leaf_sk_bytes = leaf_sk.to_bytes().to_vec();
 
         // Reconstruct the CA's signing key
-        let ca_sk =
-            lupine_sign::MlDsaSigningKey::<P>::from_bytes(&ca.signing_key_bytes)?;
+        let ca_sk = lupine_sign::MlDsaSigningKey::<P>::from_bytes(&ca.signing_key_bytes)?;
 
         // Extract CA subject as issuer for the leaf
         let issuer_der = extract_subject_from_cert(&ca.der_bytes)?;
@@ -382,11 +369,7 @@ impl CertBuilder {
         })
     }
 
-    fn signed_by_hybrid<P>(
-        self,
-        ca: &GeneratedCert,
-        algo: CertAlgorithm,
-    ) -> Result<GeneratedCert>
+    fn signed_by_hybrid<P>(self, ca: &GeneratedCert, algo: CertAlgorithm) -> Result<GeneratedCert>
     where
         P: ml_dsa::KeyGen + ml_dsa::MlDsaParams,
     {
@@ -396,8 +379,7 @@ impl CertBuilder {
         let leaf_sk_bytes = leaf_sk.to_bytes();
 
         // Reconstruct the CA's hybrid signing key
-        let ca_sk =
-            lupine_sign::HybridSigningKey::<P>::from_bytes(&ca.signing_key_bytes)?;
+        let ca_sk = lupine_sign::HybridSigningKey::<P>::from_bytes(&ca.signing_key_bytes)?;
 
         let issuer_der = extract_subject_from_cert(&ca.der_bytes)?;
         let subject_der = encode_cn(&self.subject)?;
@@ -538,10 +520,7 @@ mod tests {
             assert!(cert.pem.starts_with("-----BEGIN CERTIFICATE-----"));
 
             let parsed = X509Certificate::from_der(&cert.der_bytes).unwrap();
-            assert_eq!(
-                parsed.signature_algorithm.algorithm,
-                oid::OID_ML_DSA_44
-            );
+            assert_eq!(parsed.signature_algorithm.algorithm, oid::OID_ML_DSA_44);
             assert_eq!(parsed.tbs_certificate.version, 2);
 
             // Subject should contain our CN
@@ -566,10 +545,7 @@ mod tests {
             assert!(!cert.der_bytes.is_empty());
 
             let parsed = X509Certificate::from_der(&cert.der_bytes).unwrap();
-            assert_eq!(
-                parsed.signature_algorithm.algorithm,
-                oid::OID_ML_DSA_65
-            );
+            assert_eq!(parsed.signature_algorithm.algorithm, oid::OID_ML_DSA_65);
         });
     }
 
@@ -583,10 +559,7 @@ mod tests {
             assert!(!cert.der_bytes.is_empty());
 
             let parsed = X509Certificate::from_der(&cert.der_bytes).unwrap();
-            assert_eq!(
-                parsed.signature_algorithm.algorithm,
-                oid::OID_ML_DSA_87
-            );
+            assert_eq!(parsed.signature_algorithm.algorithm, oid::OID_ML_DSA_87);
         });
     }
 
