@@ -46,8 +46,8 @@ pub fn encode_recipient(pk: &HybridKemPublicKey768) -> String {
 /// or the decoded bytes are not a valid hybrid public key.
 pub fn decode_recipient(s: &str) -> Result<HybridKemPublicKey768> {
     let s_lower = s.to_lowercase();
-    let checked = CheckedHrpstring::new::<NoChecksum>(&s_lower)
-        .context("invalid bech32 recipient string")?;
+    let checked =
+        CheckedHrpstring::new::<NoChecksum>(&s_lower).context("invalid bech32 recipient string")?;
 
     let hrp = checked.hrp();
     let expected = Hrp::parse(RECIPIENT_HRP).expect("valid HRP");
@@ -76,8 +76,8 @@ pub fn encode_identity(sk: &HybridKemSecretKey768, pk: &HybridKemPublicKey768) -
     let mut payload = Vec::with_capacity(sk_bytes.len() + pk_bytes.len());
     payload.extend_from_slice(&sk_bytes);
     payload.extend_from_slice(&pk_bytes);
-    let encoded =
-        bech32::encode::<NoChecksum>(hrp, &payload).expect("bech32 encode cannot fail with NoChecksum");
+    let encoded = bech32::encode::<NoChecksum>(hrp, &payload)
+        .expect("bech32 encode cannot fail with NoChecksum");
     encoded.to_uppercase()
 }
 
@@ -91,8 +91,8 @@ pub fn encode_identity(sk: &HybridKemSecretKey768, pk: &HybridKemPublicKey768) -
 /// or the decoded bytes are not a valid hybrid secret key.
 pub fn decode_identity(s: &str) -> Result<HybridKemSecretKey768> {
     let s_lower = s.to_lowercase();
-    let checked = CheckedHrpstring::new::<NoChecksum>(&s_lower)
-        .context("invalid bech32 identity string")?;
+    let checked =
+        CheckedHrpstring::new::<NoChecksum>(&s_lower).context("invalid bech32 identity string")?;
 
     let hrp = checked.hrp();
     let expected = Hrp::parse(IDENTITY_HRP).expect("valid HRP");
@@ -151,7 +151,11 @@ mod tests {
             &encoded[..30]
         );
         let pk2 = decode_recipient(&encoded).expect("decode recipient");
-        assert_eq!(pk.to_bytes(), pk2.to_bytes(), "public key round-trip failed");
+        assert_eq!(
+            pk.to_bytes(),
+            pk2.to_bytes(),
+            "public key round-trip failed"
+        );
     }
 
     #[test]

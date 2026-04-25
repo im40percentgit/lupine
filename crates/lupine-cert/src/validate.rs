@@ -29,9 +29,7 @@
 use der::asn1::ObjectIdentifier;
 use lupine_core::{Error, Result, SerializationError};
 use lupine_serial::oid;
-use lupine_sign::{
-    HybridSignature, HybridVerifyingKey, MlDsaSignature, MlDsaVerifyingKey,
-};
+use lupine_sign::{HybridSignature, HybridVerifyingKey, MlDsaSignature, MlDsaVerifyingKey};
 
 use crate::parse::Certificate;
 
@@ -142,20 +140,22 @@ fn verify_mldsa(
 ) -> Result<()> {
     use lupine_core::SignAlgorithm;
     match algo {
-        SignAlgorithm::MlDsa44 => verify_mldsa_generic::<ml_dsa::MlDsa44>(vk_bytes, message, sig_bytes),
-        SignAlgorithm::MlDsa65 => verify_mldsa_generic::<ml_dsa::MlDsa65>(vk_bytes, message, sig_bytes),
-        SignAlgorithm::MlDsa87 => verify_mldsa_generic::<ml_dsa::MlDsa87>(vk_bytes, message, sig_bytes),
+        SignAlgorithm::MlDsa44 => {
+            verify_mldsa_generic::<ml_dsa::MlDsa44>(vk_bytes, message, sig_bytes)
+        }
+        SignAlgorithm::MlDsa65 => {
+            verify_mldsa_generic::<ml_dsa::MlDsa65>(vk_bytes, message, sig_bytes)
+        }
+        SignAlgorithm::MlDsa87 => {
+            verify_mldsa_generic::<ml_dsa::MlDsa87>(vk_bytes, message, sig_bytes)
+        }
         // SLH-DSA is not supported for certificates (signatures are too large).
         _ => Err(ser_err("unsupported signature algorithm for certificates")),
     }
 }
 
 /// Verify an ML-DSA signature with a specific parameter set.
-fn verify_mldsa_generic<P>(
-    vk_bytes: &[u8],
-    message: &[u8],
-    sig_bytes: &[u8],
-) -> Result<()>
+fn verify_mldsa_generic<P>(vk_bytes: &[u8], message: &[u8], sig_bytes: &[u8]) -> Result<()>
 where
     P: ml_dsa::MlDsaParams,
 {
@@ -165,11 +165,7 @@ where
 }
 
 /// Verify a hybrid Ed25519+ML-DSA signature with a specific parameter set.
-fn verify_hybrid<P>(
-    vk_bytes: &[u8],
-    message: &[u8],
-    sig_bytes: &[u8],
-) -> Result<()>
+fn verify_hybrid<P>(vk_bytes: &[u8], message: &[u8], sig_bytes: &[u8]) -> Result<()>
 where
     P: ml_dsa::MlDsaParams,
 {

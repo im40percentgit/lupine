@@ -384,7 +384,9 @@ fn build_openssh_binary(name: &str, sk_bytes: &[u8], pk_bytes: &[u8]) -> Vec<u8>
     write_ssh_string(&mut priv_section, pk_bytes);
     write_ssh_string(&mut priv_section, b""); // empty comment
     let mut pad: u8 = 1;
-    while !priv_section.len().is_multiple_of(8) {
+    // `is_multiple_of` was stabilised in Rust 1.87; workspace MSRV is 1.85.
+    #[allow(clippy::manual_is_multiple_of)]
+    while priv_section.len() % 8 != 0 {
         priv_section.push(pad);
         pad = pad.wrapping_add(1);
     }

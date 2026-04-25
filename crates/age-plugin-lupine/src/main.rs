@@ -31,10 +31,7 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     if let Some(protocol) = &cli.age_plugin {
-        eprintln!(
-            "age plugin protocol '{}' is not yet implemented.",
-            protocol
-        );
+        eprintln!("age plugin protocol '{}' is not yet implemented.", protocol);
         eprintln!("Use `canus-lupus age encrypt` / `canus-lupus age decrypt` instead.");
         std::process::exit(1);
     }
@@ -119,8 +116,7 @@ mod tests {
         );
 
         // Verify the identity can decode and decapsulate.
-        let sk2 =
-            age_plugin_lupine::keys::decode_identity(&identity).expect("decode identity");
+        let sk2 = age_plugin_lupine::keys::decode_identity(&identity).expect("decode identity");
         let (ct, ss1) = pk.encapsulate(&mut OsRng).expect("encapsulate");
         let ss2 = sk2.decapsulate(&ct).expect("decapsulate");
         assert_eq!(ss1.as_bytes(), ss2.as_bytes());

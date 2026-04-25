@@ -133,10 +133,7 @@ impl Certificate {
     /// Raw signature bytes (the BIT STRING content, without the unused-bits
     /// prefix byte).
     pub fn signature_bytes(&self) -> &[u8] {
-        self.parsed
-            .signature_value
-            .as_bytes()
-            .unwrap_or_default()
+        self.parsed.signature_value.as_bytes().unwrap_or_default()
     }
 
     /// Raw subject public key bytes (the BIT STRING content from

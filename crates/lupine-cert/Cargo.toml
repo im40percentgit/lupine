@@ -17,7 +17,7 @@ lupine-serial = { workspace = true }
 der = { workspace = true, default-features = false }
 # lupine-sign uses rand 0.10 / rand_core 0.10 (RC) for its CryptoRng bound.
 # We need the same version to pass an RNG to generate_keypair.
-rand = "=0.10.0"
+rand = "0.10"
 # ml-dsa is needed for the generic type parameters (MlDsa44, MlDsa65, MlDsa87)
 # used in lupine-sign's generic keygen/sign API.
 ml-dsa = { workspace = true }

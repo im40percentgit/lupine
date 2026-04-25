@@ -530,9 +530,8 @@ fn parse_tbs_certificate(input: &[u8]) -> Result<TbsCertificate> {
 
     // signature AlgorithmIdentifier
     let sig_algo_total = tlv_total_len(&body[pos..])?;
-    let signature_algorithm =
-        AlgorithmIdentifier::from_der(&body[pos..pos + sig_algo_total])
-            .map_err(|_| ser_err("failed to decode TBS signature AlgorithmIdentifier"))?;
+    let signature_algorithm = AlgorithmIdentifier::from_der(&body[pos..pos + sig_algo_total])
+        .map_err(|_| ser_err("failed to decode TBS signature AlgorithmIdentifier"))?;
     pos += sig_algo_total;
 
     // issuer Name
@@ -553,9 +552,8 @@ fn parse_tbs_certificate(input: &[u8]) -> Result<TbsCertificate> {
 
     // subjectPublicKeyInfo
     let spki_total = tlv_total_len(&body[pos..])?;
-    let subject_public_key_info =
-        SubjectPublicKeyInfo::from_der(&body[pos..pos + spki_total])
-            .map_err(|_| ser_err("failed to decode SubjectPublicKeyInfo"))?;
+    let subject_public_key_info = SubjectPublicKeyInfo::from_der(&body[pos..pos + spki_total])
+        .map_err(|_| ser_err("failed to decode SubjectPublicKeyInfo"))?;
 
     Ok(TbsCertificate {
         version,
