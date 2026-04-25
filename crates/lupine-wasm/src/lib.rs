@@ -46,7 +46,7 @@ use wasm_bindgen::prelude::*;
 
 /// A complete PQC keypair for encryption and signing.
 ///
-/// Returned by [`generateKeys`]. Access individual keys via the getter
+/// Returned by `generateKeys`. Access individual keys via the getter
 /// properties: `kemPublicKey`, `kemSecretKey`, `signPublicKey`, `signSecretKey`.
 /// Each returns a `Uint8Array` in JavaScript.
 #[wasm_bindgen]
