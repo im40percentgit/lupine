@@ -26,9 +26,12 @@ slh-dsa = { workspace = true }
 # crates.  These are listed directly here (not via workspace) so lupine-kem,
 # which depends on the stable rand_core 0.6 / rand 0.8 / signature 2.x series,
 # is completely unaffected.  Cargo compiles both version trees independently.
+# Note: signature and rand_core stay exact-pinned (RC trait crates where minor
+# churn can break the trait surface).  rand 0.10 is a stable semver release —
+# any 0.10.x is compatible; Cargo.lock pins the resolved version.
 signature = "=3.0.0-rc.10"
 rand_core = "=0.10.0"
-rand = "=0.10.1"
+rand = "0.10"
 zeroize = { workspace = true }
 # Phase 3 (hybrid Ed25519+ML-DSA) — ed25519-dalek 2.x uses signature 2.x
 # internally but we access it via its native API so there is no trait conflict.
@@ -37,7 +40,7 @@ ed25519-dalek = { workspace = true }
 [dev-dependencies]
 hex = { workspace = true }
 proptest = { workspace = true }
-rand = "=0.10.1"
+rand = "0.10"
 criterion = { workspace = true }
 
 [[bench]]
