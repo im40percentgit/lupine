@@ -19,7 +19,15 @@ alloc = ["lupine-core/alloc"]
 lupine-core = { workspace = true }
 
 # Phase 2 PQC signature crates (workspace-registered RC pinned versions).
-ml-dsa = { workspace = true }
+# ml-dsa's default features include `pkcs8`, which we don't use and which has
+# an upstream bug in ml-dsa-0.1.0-rc.7's pkcs8.rs that current nightly catches
+# (treats `pkcs8::Error::KeyMalformed` as a fn-pointer instead of a tuple
+# variant constructor). Opt out by setting default-features = false; explicit
+# features restore the subset we actually need.
+# slh-dsa's default features include `pkcs8/alloc`, which activates alloc on
+# its required pkcs8 dep — slh-dsa's own source uses those types unconditionally,
+# so removing its defaults would break slh-dsa's compilation. Keep defaults.
+ml-dsa = { workspace = true, default-features = false, features = ["alloc", "rand_core"] }
 slh-dsa = { workspace = true }
 
 # The RC signature crates require the RC release train of RustCrypto support

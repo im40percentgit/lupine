@@ -106,7 +106,7 @@ dependencies = [
 
 [[package]]
 name = "lupine-core"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "rand_core",
  "zeroize",
@@ -123,7 +123,7 @@ dependencies = [
 
 [[package]]
 name = "lupine-serial"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "base64ct",
  "der",

@@ -18,7 +18,7 @@ members = [
 exclude = ["fuzz"]
 
 [workspace.package]
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/im40percentgit/lupine"
@@ -40,7 +40,10 @@ ml-kem = { version = "0.2", default-features = false, features = ["zeroize"] }
 # These crates require signature 3.x, rand_core 0.10, and rand 0.10 — all RC.
 # lupine-sign carries those RC deps directly so lupine-kem (which uses the
 # stable 0.6/0.8 versions) is unaffected. Cargo compiles both version trees.
-ml-dsa = { version = "=0.1.0-rc.7", features = ["zeroize"] }
+ml-dsa = { version = "=0.1.0-rc.7", default-features = false, features = ["zeroize"] }
+# slh-dsa's default features include `pkcs8/alloc`, which activates alloc on its
+# pkcs8 dep. slh-dsa unconditionally uses pkcs8 types that require that alloc
+# activation; removing defaults breaks slh-dsa's own compilation. Keep defaults.
 slh-dsa = { version = "=0.2.0-rc.4", features = ["zeroize"] }
 
 # Classical crypto (for hybrid modes — Phase 3)

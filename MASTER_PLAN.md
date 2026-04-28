@@ -113,6 +113,7 @@ Implemented `lupine-sign` with ML-DSA (FIPS 204) for parameter sets 44/65/87 and
 - DEC-SIGN-004: Deterministic signing as default for SLH-DSA (accepted)
 - DEC-SIGN-005: Manual Drop for MlDsaSigningKey instead of ZeroizeOnDrop derive (accepted)
 - DEC-SIGN-006: Manual Drop for SlhDsaSigningKey instead of ZeroizeOnDrop derive (accepted)
+- DEC-SIGN-007: ml-dsa compiled with default-features=false to exclude pkcs8 dead weight (accepted)
 
 ## Phase 3: Hybrid Cryptographic Modes
 **Status:** completed

@@ -14,7 +14,7 @@ dependencies = [
 
 [[package]]
 name = "age-plugin-lupine"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "bech32",
@@ -177,7 +177,7 @@ checksum = "5d20789868f4b01b2f2caec9f5c4e0213b41e3e5702a50157d699ae31ced2fcb"
 
 [[package]]
 name = "canus-lupus"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "age-plugin-lupine",
  "anyhow",
@@ -952,7 +952,7 @@ checksum = "5e5032e24019045c762d3c0f28f5b6b8bbf38563a65908389bf7978758920897"
 
 [[package]]
 name = "lupine-cert"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "der 0.8.0",
  "hex",
@@ -965,7 +965,7 @@ dependencies = [
 
 [[package]]
 name = "lupine-cli"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "clap",
@@ -985,7 +985,7 @@ dependencies = [
 
 [[package]]
 name = "lupine-core"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "rand_core 0.6.4",
  "zeroize",
@@ -993,7 +993,7 @@ dependencies = [
 
 [[package]]
 name = "lupine-kem"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "criterion",
  "hex",
@@ -1011,7 +1011,7 @@ dependencies = [
 
 [[package]]
 name = "lupine-pqc"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "chacha20poly1305",
  "hkdf",
@@ -1029,7 +1029,7 @@ dependencies = [
 
 [[package]]
 name = "lupine-serial"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "base64ct",
  "der 0.8.0",
@@ -1043,7 +1043,7 @@ dependencies = [
 
 [[package]]
 name = "lupine-sign"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "criterion",
  "ed25519-dalek",
@@ -1060,7 +1060,7 @@ dependencies = [
 
 [[package]]
 name = "lupine-wasm"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "getrandom 0.2.17",
  "getrandom 0.4.2",
@@ -1097,7 +1097,6 @@ version = "0.1.0-rc.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af6e554a2affc86740759dbe568a92abd58b47fea4e28ebe1b7bb4da99e490d4"
 dependencies = [
- "const-oid 0.10.2",
  "hybrid-array 0.4.8",
  "module-lattice",
  "pkcs8 0.11.0-rc.11",
