@@ -1,5 +1,14 @@
 /target
+fuzz/target/
+.worktrees/
 *.swp
 *.swo
 .DS_Store
 tmp/
+
+# Citadel harness transient state (subagent trackers, status caches, audit logs)
+.claude/.*
+.claude/skills/
+
+# Auto-regenerated each session by surface.sh from @decision annotations
+DECISIONS.md
